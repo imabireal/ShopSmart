@@ -253,28 +253,14 @@ def cart():
             })
             cart_total += item_total
     
-    # Handle buy-now items
-    buy_now_item = session.get('buy_now_item')
-    buy_now_items = []
-    buy_now_total = 0
-    
-    if buy_now_item:
-        buy_now_items.append({
-            'product': buy_now_item['product'],
-            'quantity': buy_now_item['quantity'],
-            'total': buy_now_item['product']['price'] * buy_now_item['quantity']
-        })
-        buy_now_total = buy_now_item['product']['price'] * buy_now_item['quantity']
-    
     # Calculate final total (cart items + buy-now items)
-    total = cart_total + buy_now_total
+    total = cart_total 
     
     return render_template('cart.html', 
                          cart_items=cart_items, 
                          total=total, 
-                         cart_count=sum(cart.values()),
-                         buy_now_items=buy_now_items,
-                         buy_now_total=buy_now_total)
+                         cart_count=sum(cart.values())
+                        )
 
 @app.route('/update_cart', methods=['POST'])
 @login_required
@@ -338,53 +324,81 @@ def buy_now(product_id):
 def checkout():
     cart = session.get('cart', {})
     buy_now_item = session.get('buy_now_item')
-    
+
     # Check if there's something to checkout
     if not cart and not buy_now_item:
         flash('Your cart is empty', 'error')
         return redirect(url_for('cart'))
-    
+
     # Get checkout data
-    name = request.form.get('name')
-    address = request.form.get('address')
-    card = request.form.get('card')
-    
-    # Simple validation
-    if not all([name, address, card]):
-        flash('Please fill in all fields', 'error')
+    name = request.form.get('name', '').strip()
+    address = request.form.get('address', '').strip()
+    card_number = request.form.get('card_number', '').strip()
+    expiry_date = request.form.get('expiry_date', '').strip()
+    cvv = request.form.get('cvv', '').strip()
+
+    # Validate required fields
+    if not all([name, address, card_number, expiry_date, cvv]):
+        flash('Please fill in all required fields', 'error')
         return redirect(url_for('cart'))
-    
+
+    # Basic card number validation (demo purposes)
+    if len(card_number.replace(' ', '')) < 13:
+        flash('Invalid card number', 'error')
+        return redirect(url_for('cart'))
+
+    # Basic expiry date validation
+    try:
+        month, year = expiry_date.split('/')
+        if int(month) < 1 or int(month) > 12:
+            raise ValueError('Invalid month')
+    except:
+        flash('Invalid expiry date format (MM/YY)', 'error')
+        return redirect(url_for('cart'))
+
+    # Basic CVV validation
+    if len(cvv) < 3:
+        flash('Invalid CVV', 'error')
+        return redirect(url_for('cart'))
+
     # Calculate total from cart items
     total = 0
     cart_items_detail = []
-    
+
     for product_id, quantity in cart.items():
         product = next((p for p in products if p['id'] == product_id), None)
         if product:
             item_total = product['price'] * quantity
             total += item_total
             cart_items_detail.append(f"{product['name']} x{quantity}")
-    
+
     # Add buy-now item to total if present
     buy_now_detail = ""
     if buy_now_item:
         buy_now_total = buy_now_item['product']['price'] * buy_now_item['quantity']
         total += buy_now_total
         buy_now_detail = f"{buy_now_item['product']['name']} x{buy_now_item['quantity']}"
-    
+
     # Clear buy-now item after successful checkout (but keep cart items)
     session.pop('buy_now_item', None)
     session.modified = True
-    
+
+    # Mask card number for security (show only last 4 digits)
+    masked_card = f"**** **** **** {card_number[-4:]}"
+
     # Create order summary
     if cart_items_detail and buy_now_detail:
-        order_summary = "Order placed successfully! Items: " + ", ".join(cart_items_detail) + ", " + buy_now_detail
+        order_summary = "Checkout completed successfully! Items: " + ", ".join(cart_items_detail) + ", " + buy_now_detail
     elif cart_items_detail:
-        order_summary = "Order placed successfully! Items: " + ", ".join(cart_items_detail)
+        order_summary = "Checkout completed successfully! Items: " + ", ".join(cart_items_detail)
     else:
-        order_summary = f"Order placed successfully! Item: {buy_now_detail}"
-    
-    flash(f'{order_summary} - Total: ${total:.2f}', 'success')
+        order_summary = f"Checkout completed successfully! Item: {buy_now_detail}"
+
+    order_summary += f"<br>Ship to: {name}"
+    order_summary += f"<br>Address: {address}"
+    order_summary += f"<br>Payment: {masked_card}"
+
+    flash(order_summary, 'success')
     return redirect(url_for('home'))
 
 @app.route('/buy_now_checkout', methods=['GET', 'POST'])
@@ -398,18 +412,60 @@ def buy_now_checkout():
         return redirect(url_for('home'))
     
     if request.method == 'POST':
-        # Process immediate buy-now purchase (no form data required)
-        # For demo purposes, we'll simulate a successful purchase
+        checkout_type = request.form.get('checkout_type', 'quick')
         product = buy_now_item['product']
         quantity = buy_now_item['quantity']
         total = product['price'] * quantity
         
-        # Clear buy-now item immediately after "purchase"
+        if checkout_type == 'quick':
+            # Process immediate buy-now purchase (no form data required)
+            order_summary = f"Quick purchase completed successfully! {product['name']} x{quantity} - Total: ${total:.2f}"
+            
+        elif checkout_type == 'normal':
+            # Process normal checkout with form data
+            name = request.form.get('name', '').strip()
+            address = request.form.get('address', '').strip()
+            card_number = request.form.get('card_number', '').strip()
+            expiry_date = request.form.get('expiry_date', '').strip()
+            cvv = request.form.get('cvv', '').strip()
+            
+            # Validate required fields
+            if not all([name, address, card_number, expiry_date, cvv]):
+                flash('Please fill in all required fields', 'error')
+                return redirect(url_for('buy_now_checkout'))
+            
+            # Basic card number validation (demo purposes)
+            if len(card_number.replace(' ', '')) < 13:
+                flash('Invalid card number', 'error')
+                return redirect(url_for('buy_now_checkout'))
+            
+            # Basic expiry date validation
+            try:
+                month, year = expiry_date.split('/')
+                if int(month) < 1 or int(month) > 12:
+                    raise ValueError('Invalid month')
+            except:
+                flash('Invalid expiry date format (MM/YY)', 'error')
+                return redirect(url_for('buy_now_checkout'))
+            
+            # Basic CVV validation
+            if len(cvv) < 3:
+                flash('Invalid CVV', 'error')
+                return redirect(url_for('buy_now_checkout'))
+            
+            # Mask card number for security (show only last 4 digits)
+            masked_card = f"**** **** **** {card_number[-4:]}"
+            
+            order_summary = f"Checkout completed successfully! {product['name']} x{quantity} - Total: ${total:.2f}"
+            order_summary += f"<br>Ship to: {name}"
+            order_summary += f"<br>Address: {address}"
+            order_summary += f"<br>Payment: {masked_card}"
+        
+        # Clear buy-now item after successful purchase
         session.pop('buy_now_item', None)
         session.modified = True
         
         # Create success message
-        order_summary = f"Purchase completed successfully! {product['name']} x{quantity} - Total: ${total:.2f}"
         flash(order_summary, 'success')
         
         return redirect(url_for('home'))
