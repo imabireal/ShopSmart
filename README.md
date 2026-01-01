@@ -45,16 +45,6 @@ ShopSmart is a Flask-based e-commerce web application designed to provide a simp
 
 ---
 
-## Project Structure
-
-ShopSmart/
-│
-├── static/ # CSS, JS, Images
-├── templates/ # HTML templates
-├── app.py # Main Flask application
-├── requirements.txt # Python dependencies
-└── README.md # Project documentation
-
 ## ▶️ Run Locally
 
 ### 1️⃣ Clone the Repository
@@ -71,12 +61,13 @@ pip install -r requirements.txt
 ```bash
 python app.py
 ```
+---
 
 ## TODO / Future Enhancements
 
-Integrate product recommendation system
-Add database support (MySQL / PostgreSQL / SQLite)
-Improve security (password hashing, CSRF protection)
-Order history and user profiles
-Admin dashboard for product management
-Responsive UI improvements
+- Integrate product recommendation system
+- Add database support (MySQL / PostgreSQL / SQLite)
+- Improve security (password hashing, CSRF protection)
+- Order history and user profiles
+- Admin dashboard for product management
+- Responsive UI improvement
