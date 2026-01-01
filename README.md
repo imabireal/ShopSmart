@@ -73,6 +73,7 @@ python app.py
 ```
 
 ## TODO / Future Enhancements
+
 Integrate product recommendation system
 Add database support (MySQL / PostgreSQL / SQLite)
 Improve security (password hashing, CSRF protection)
