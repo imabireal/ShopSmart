@@ -36,7 +36,7 @@ ShopSmart is a Flask-based e-commerce web application designed to provide a simp
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Backend:** Flask (Python)
 - **Frontend:** HTML, CSS, Bootstrap
@@ -45,7 +45,7 @@ ShopSmart is a Flask-based e-commerce web application designed to provide a simp
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ShopSmart/
 │
