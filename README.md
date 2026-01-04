@@ -63,7 +63,7 @@ python app.py
 ```
 ---
 
-## TODO / Future Enhancements
+## TODO
 
 - Integrate product recommendation system
 - Add database support (MySQL / PostgreSQL / SQLite)
