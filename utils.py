@@ -9,6 +9,7 @@ formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
+
 def clean_cart_session():
     """Clean and validate cart data in session to prevent serialization errors"""
     try:
