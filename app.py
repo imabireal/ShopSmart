@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 import os
-
+import db_helper
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-here')
 
@@ -9,18 +9,27 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-# Mock user database (in a real app, use a proper database)
-users = {}
-
 class User(UserMixin):
-    def __init__(self, id, username, password):
+    def __init__(self, id, username):
         self.id = id
         self.username = username
-        self.password = password
 
 @login_manager.user_loader
 def load_user(user_id):
-    return users.get(int(user_id))
+    # Get user from session if available
+    session_user_id = session.get('user_id')
+    session_username = session.get('username')
+    
+    if session_user_id == user_id and session_username:
+        return User(session_user_id, session_username)
+    
+    # Optionally, fetch from MongoDB if session doesn't match
+    # This can be used for persistent sessions
+    user_data = db_helper.get_user_by_id(user_id) if 'db_helper' in dir() else None
+    if user_data:
+        return User(user_data["_id"], user_data["username"])
+    
+    return None
 
 def clean_cart_session():
     """Clean and validate cart data in session to prevent serialization errors"""
@@ -157,11 +166,20 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        user = next((u for u in users.values() if u.username == username and u.password == password), None)
-        if user:
+        
+        result = db_helper.login_user(username, password)
+        
+        if result["success"]:
+            user_data = result["user"]
+            # Create User object for Flask-Login
+            user = User(user_data["_id"], user_data["username"])
             login_user(user)
+            # Store user_id in session for persistence
+            session['user_id'] = user_data["_id"]
+            session['username'] = user_data["username"]
             return redirect(url_for('home'))
-        flash('Invalid username or password')
+        else:
+            flash(result["message"])
     return render_template('login.html')
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -169,19 +187,27 @@ def register():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        if username in [u.username for u in users.values()]:
-            flash('Username already exists')
-        else:
-            user_id = len(users) + 1
-            users[user_id] = User(user_id, username, password)
+        
+        result = db_helper.create_user(username, password)
+        
+        if result["success"]:
+            user_data = result["user"]
+            # Store user info in session for persistence
+            session['user_id'] = user_data["_id"]
+            session['username'] = user_data["username"]
             flash('Account created successfully. Please log in.')
             return redirect(url_for('login'))
+        else:
+            flash(result["message"])
     return render_template('register.html')
 
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
+    # Clear user session data
+    session.pop('user_id', None)
+    session.pop('username', None)
     return redirect(url_for('login'))
 
 # Cart management routes
