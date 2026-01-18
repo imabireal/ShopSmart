@@ -76,36 +76,10 @@ pip install -r requirements.txt
 
 ### 4️⃣ Run the Application
 ```bash
-python app.py
+python run.py
 ```
 
 The application will be available at `http://localhost:5000`
-
----
-
-## Project Structure
-
-```
-ShopSmart/
-├── app.py              # Main Flask application
-├── db_helper.py        # Database helper functions
-├── utils.py            # Utility functions for session management
-├── models.py           # Data models
-├── requirements.txt    # Python dependencies
-├── .env                # Environment variables (create this)
-├── .gitignore          # Git ignore rules
-├── static/
-│   ├── styles.css      # Global styles
-│   └── js/
-│       ├── home.js             # Home page JavaScript
-│       └── buy_now_checkout.js # Buy now checkout JavaScript
-└── templates/
-    ├── home.html              # Home page template
-    ├── login.html             # Login page template
-    ├── register.html          # Registration page template
-    ├── cart.html              # Shopping cart template
-    └── buy_now_checkout.html  # Buy now checkout template
-```
 
 ---
 
