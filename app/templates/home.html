@@ -36,10 +36,11 @@
             <div class="products-grid">
                 {% for product in products %}
                 <div class="product-card">
-                    <img src="https://via.placeholder.com/250x200?text={{ product.name | urlencode }}" alt="{{ product.name }}" class="product-image">
+                    {% set image_list = product.image_url.replace('[', '').replace(']', '').replace("'", "").split(', ') %}
+                    <img src="{{ image_list[0] }}" alt="{{ product.name }}" class="product-image">
                     <div class="product-info">
-                        <h3 class="product-title">{{ product.name }}</h3>
-                        <p class="product-price">${{ product.price }}</p>
+                        <h3 class="product-title">{{ product.Description }}</h3>
+                        <p class="product-price">${{ product.price_inr }}</p>
                         {% if product.seller %}
                         <p class="text-sm text-gray-500">by {{ product.seller }}</p>
                         {% endif %}
