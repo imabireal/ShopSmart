@@ -68,6 +68,54 @@
             </div>
         </section>
 
+        <!-- Pagination Controls -->
+        {% if pagination and pagination.total_pages > 1 %}
+        <div class="pagination">
+            <!-- Previous Button -->
+            {% if pagination.has_prev %}
+            <a href="{{ url_for('product.home', page=pagination.current_page - 1) }}" class="pagination-btn pagination-prev">
+                &larr; Previous
+            </a>
+            {% else %}
+            <span class="pagination-btn pagination-prev pagination-disabled">
+                &larr; Previous
+            </span>
+            {% endif %}
+
+            <!-- Page Numbers -->
+            <div class="pagination-pages">
+                {% for page_num in range(1, pagination.total_pages + 1) %}
+                    {% if page_num == pagination.current_page %}
+                    <span class="pagination-btn pagination-current">{{ page_num }}</span>
+                    {% elif page_num == 1 or page_num == pagination.total_pages or (page_num >= pagination.current_page - 1 and page_num <= pagination.current_page + 1) %}
+                    <a href="{{ url_for('product.home', page=page_num) }}" class="pagination-btn">{{ page_num }}</a>
+                    {% elif page_num == pagination.current_page - 2 %}
+                    <span class="pagination-ellipsis">...</span>
+                    {% elif page_num == pagination.current_page + 2 %}
+                    <span class="pagination-ellipsis">...</span>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            <!-- Next Button -->
+            {% if pagination.has_next %}
+            <a href="{{ url_for('product.home', page=pagination.current_page + 1) }}" class="pagination-btn pagination-next">
+                Next &rarr;
+            </a>
+            {% else %}
+            <span class="pagination-btn pagination-next pagination-disabled">
+                Next &rarr;
+            </span>
+            {% endif %}
+        </div>
+
+        <!-- Pagination Info -->
+        <div class="pagination-info">
+            Showing page {{ pagination.current_page }} of {{ pagination.total_pages }}
+            ({{ pagination.total_items }} total products)
+        </div>
+        {% endif %}
+
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 <div class="container">

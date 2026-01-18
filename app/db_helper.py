@@ -83,11 +83,52 @@ def get_products():
     products = list(products_col.find({}, {"_id": 0}))
     return products
 
+def get_products_paginated(page=1, per_page=10):
+    """Fetch paginated main products from database.
+    
+    Args:
+        page: Page number (1-indexed)
+        per_page: Number of products per page
+    
+    Returns:
+        List of products for the specified page
+    """
+    products_col = db["products"]
+    skip = (page - 1) * per_page
+    products = list(products_col.find({}, {"_id": 0}).skip(skip).limit(per_page))
+    return products
+
+def count_products():
+    """Count total number of main products in database."""
+    products_col = db["products"]
+    return products_col.count_documents({})
+
 def get_seller_products(seller_username):
     """Fetch products for a specific seller."""
     seller_products_col = db["seller_products"]
     products = list(seller_products_col.find({"seller": seller_username}, {"_id": 0}))
     return products
+
+def get_seller_products_paginated(seller_username, page=1, per_page=10):
+    """Fetch paginated seller products from database.
+    
+    Args:
+        seller_username: The seller's username
+        page: Page number (1-indexed)
+        per_page: Number of products per page
+    
+    Returns:
+        List of products for the specified page
+    """
+    seller_products_col = db["seller_products"]
+    skip = (page - 1) * per_page
+    products = list(seller_products_col.find({"seller": seller_username}, {"_id": 0}).skip(skip).limit(per_page))
+    return products
+
+def count_seller_products(seller_username):
+    """Count total number of seller products in database."""
+    seller_products_col = db["seller_products"]
+    return seller_products_col.count_documents({"seller": seller_username})
 
 def add_product(name, price):
     """Add a new main product to database."""

@@ -2,7 +2,6 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_required, current_user
 from app import db_helper
 from app.utils import utils
-from app import models
 
 product_bp = Blueprint('product', __name__)
 
@@ -24,18 +23,65 @@ def home():
     cart = utils.clean_cart_session()
     cart_count = sum(cart.values()) if cart else 0
 
-    # Get all products (main + seller products) from database
-    all_products = db_helper.get_products()
+    # Pagination configuration
+    ITEMS_PER_PAGE = 12  # Can be adjusted to 20 as needed
+    
+    # Get current page from query parameter, default to 1
+    try:
+        page = int(request.args.get('page', 1))
+        if page < 1:
+            page = 1
+    except ValueError:
+        page = 1
+    
+    # Get paginated main products
+    all_products = db_helper.get_products_paginated(page=page, per_page=ITEMS_PER_PAGE)
+    
+    # Get paginated seller products
     seller_usernames = ['seller1', 'seller2']  # For now, hardcoded sellers from models
     for seller in seller_usernames:
-        seller_products = db_helper.get_seller_products(seller)
+        seller_products = db_helper.get_seller_products_paginated(seller, page=page, per_page=ITEMS_PER_PAGE)
         for product in seller_products:
             all_products.append({
                 **product,
                 'seller': seller
             })
+    
+    # Calculate pagination metadata
+    main_products_count = db_helper.count_products()
+    total_seller_products = sum(db_helper.count_seller_products(seller) for seller in seller_usernames)
+    total_products = main_products_count + total_seller_products
+    total_pages = (total_products + ITEMS_PER_PAGE - 1) // ITEMS_PER_PAGE  # Ceiling division
+    
+    # Ensure page doesn't exceed total pages
+    if page > total_pages and total_pages > 0:
+        page = total_pages
+        # Refetch products for the corrected page
+        all_products = db_helper.get_products_paginated(page=page, per_page=ITEMS_PER_PAGE)
+        for seller in seller_usernames:
+            seller_products = db_helper.get_seller_products_paginated(seller, page=page, per_page=ITEMS_PER_PAGE)
+            for product in seller_products:
+                all_products.append({
+                    **product,
+                    'seller': seller
+                })
+    
+    # Pagination metadata for template
+    pagination = {
+        'current_page': page,
+        'total_pages': total_pages,
+        'has_prev': page > 1,
+        'has_next': page < total_pages,
+        'items_per_page': ITEMS_PER_PAGE,
+        'total_items': total_products
+    }
 
-    return render_template('home.html', products=all_products, cart=cart, cart_count=cart_count, current_user=current_user)
+    return render_template('home.html', 
+                           products=all_products, 
+                           cart=cart, 
+                           cart_count=cart_count, 
+                           current_user=current_user,
+                           pagination=pagination)
 
 @product_bp.route('/admin/dashboard')
 @login_required
@@ -73,16 +119,9 @@ def admin_add_product():
     if request.method == 'POST':
         name = request.form['name']
         price = float(request.form['price'])
-        
-        global next_product_id
-        new_product = {
-            'id': models.next_product_id,
-            'name': name,
-            'price': price
-        }
-        models.products.append(new_product)
-        models.next_product_id += 1
-        
+
+        new_product = db_helper.add_product(name, price)
+
         flash(f'Product "{name}" added successfully!', 'success')
         return redirect(url_for('product.admin_dashboard'))
     
@@ -179,17 +218,7 @@ def seller_add_product():
         price = float(request.form['price'])
         
         seller_name = current_user.username
-        new_product = {
-            'id': models.next_seller_product_id,
-            'name': name,
-            'price': price
-        }
-        
-        if seller_name not in models.seller_products:
-            models.seller_products[seller_name] = []
-        
-        models.seller_products[seller_name].append(new_product)
-        models.next_seller_product_id += 1
+        new_product = db_helper.add_seller_product(seller_name, name, price)
         
         flash(f'Product "{name}" added successfully!', 'success')
         return redirect(url_for('product.seller_dashboard'))

@@ -71,15 +71,16 @@ def cart():
     cart_total = 0
     
     for product_id, quantity in cart.items():
-        product = next((p for p in models.products if p['id'] == product_id), None)
-        
+        product = db_helper.get_product_by_id(product_id)
+
         # If not found in main products, search seller products
         if not product:
-            for seller_products in models.seller_products.values():
-                product = next((p for p in seller_products if p['id'] == product_id), None)
+            seller_usernames = ['seller1', 'seller2']  # For now, hardcoded sellers from models
+            for seller in seller_usernames:
+                product = db_helper.get_seller_product_by_id(seller, product_id)
                 if product:
                     break
-        
+
         if product:
             item_total = product['price'] * quantity
             cart_items.append({
