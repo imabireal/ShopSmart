@@ -1,6 +1,6 @@
 from flask import Blueprint, request, redirect, url_for, flash, session
 from flask_login import login_required
-from app import db_helper
+from app.utils import db_helper
 import app.utils.utils as utils
 
 order_bp = Blueprint('order', __name__)

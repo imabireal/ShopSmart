@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session
 from flask_login import login_required, current_user
-from app import db_helper
+from app.utils import db_helper
 from app.utils import utils
 
 cart_bp = Blueprint('cart', __name__)
