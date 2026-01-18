@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ShopSmart - Home</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
     <header class="walmart-header">
@@ -18,11 +18,11 @@
                     {% elif current_user.role == 'seller' %}
                         <a href="{{ url_for('seller_dashboard') }}" class="text-green-600 font-bold">Seller Panel</a>
                     {% endif %}
-                    <a href="{{ url_for('cart') }}" class="cart-badge">
+                    <a href="{{ url_for('cart.cart') }}" class="cart-badge">
                         Cart
                         <span id="cart-count" class="cart-count {% if not cart_count or cart_count == 0 %}hidden{% endif %}">{{ cart_count or 0 }}</span>
                     </a>
-                    <a href="{{ url_for('logout') }}">Logout</a>
+                    <a href="{{ url_for('auth.logout') }}">Logout</a>
                 {% else %}
                     <a href="{{ url_for('auth.login') }}">Login</a>
                     <a href="{{ url_for('auth.register') }}">Register</a>

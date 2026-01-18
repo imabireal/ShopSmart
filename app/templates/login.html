@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ShopSmart - Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
     <div class="walmart-form-container">
@@ -32,7 +32,7 @@
 
         <div class="walmart-form" style="padding-top: 0;">
             <p style="text-align: center; margin: 0;">Don't have an account?
-                <a href="{{ url_for('register') }}" style="color: var(--walmart-blue); text-decoration: none; font-weight: 500;">Register here</a>
+                <a href="{{ url_for('auth.register') }}" style="color: var(--walmart-blue); text-decoration: none; font-weight: 500;">Register here</a>
             </p>
         </div>
 
