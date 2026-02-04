@@ -5,7 +5,7 @@ from app.utils import utils
 
 cart_bp = Blueprint('cart', __name__)
 
-@cart_bp.route('/add_to_cart/<int:product_id>')
+@cart_bp.route('/add_to_cart/<product_id>', methods=['GET', 'POST'])
 def add_to_cart(product_id):
     # Check if user is authenticated
     if not current_user.is_authenticated:
@@ -13,11 +13,11 @@ def add_to_cart(product_id):
             'success': False,
             'message': 'Please log in to add items to cart',
             'redirect': url_for('auth.login')
-        })
+        }), 401
 
     # Check if product exists (search in both main and seller products)
     product = db_helper.get_product_by_id(product_id)
-
+    
     if not product:
         seller_usernames = ['seller1', 'seller2']  # For now, hardcoded sellers from models
         for seller in seller_usernames:
@@ -32,7 +32,7 @@ def add_to_cart(product_id):
     cart = utils.clean_cart_session()
 
     # Convert product_id to int and add or update item in cart
-    product_id = int(product_id)
+    #product_id = int(product_id)
     if product_id in cart:
         cart[product_id] = int(cart[product_id]) + 1
     else:
@@ -57,7 +57,7 @@ def add_to_cart(product_id):
 
     return jsonify({
         'success': True,
-        'message': f'{product["name"]} added to cart',
+        'message': f'{product["Description"]} added to cart',
         'cart_count': cart_count
     })
 
@@ -82,7 +82,7 @@ def cart():
                     break
 
         if product:
-            item_total = product['price'] * quantity
+            item_total = product['price_inr'] * quantity
             cart_items.append({
                 'product': product,
                 'quantity': quantity,
@@ -103,26 +103,26 @@ def cart():
 @login_required
 def update_cart():
     data = request.get_json()
-    product_id = int(data.get('product_id'))
+    product_id = str(data.get('product_id'))
     quantity = int(data.get('quantity', 0))
-    
+
     cart = session.get('cart', {})
     if not isinstance(cart, dict):
         cart = {}
-    
+
     if quantity <= 0:
         cart.pop(product_id, None)
     else:
         cart[product_id] = quantity
-    
-    # Ensure all values are integers
-    cart = {k: int(v) for k, v in cart.items()}
-    
-    session['cart'] = cart
+
+    # Clean cart using utils function
+    cleaned_cart = utils.clean_cart_session()
+
+    session['cart'] = cleaned_cart
     session.modified = True
-    
-    cart_count = sum(cart.values())
-    
+
+    cart_count = sum(cleaned_cart.values())
+
     return jsonify({'success': True, 'cart_count': cart_count})
 
 @cart_bp.route('/remove_from_cart/<int:product_id>', methods=['POST'])

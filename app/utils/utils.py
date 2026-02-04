@@ -27,19 +27,19 @@ def clean_cart_session():
             session.modified = True
             return {}
         
-        # Clean up cart data - ensure all keys and values are strictly integers
+        # Clean up cart data - keep keys as strings, ensure values are strictly integers
         cleaned_cart = {}
         for k, v in cart.items():
             try:
                 # Skip if key or value is None
                 if k is None or v is None:
                     continue
-                    
-                # Force conversion to int for both keys and values
-                key = int(k) if isinstance(k, (int, str)) else None
+
+                # Keep keys as strings, convert values to int
+                key = str(k) if isinstance(k, (int, str)) else None
                 value = int(v) if isinstance(v, (int, str)) else None
-                
-                if key is not None and value is not None and key > 0 and value > 0:
+
+                if key is not None and value is not None and value > 0:
                     cleaned_cart[key] = value
             except (ValueError, TypeError):
                 continue  # Skip invalid entries

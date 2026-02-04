@@ -37,7 +37,7 @@
                 {% for product in products %}
                 <div class="product-card">
                     {% set image_list = product.image_url.replace('[', '').replace(']', '').replace("'", "").split(', ') %}
-                    <img src="{{ image_list[0] }}" alt="{{ product.name }}" class="product-image">
+                    <img src="{{ image_list[0] }}" alt="{{ product.Description }}" class="product-image">
                     <div class="product-info">
                         <h3 class="product-title">{{ product.Description }}</h3>
                         <p class="product-price">${{ product.price_inr }}</p>
@@ -47,18 +47,18 @@
                         <div class="product-buttons">
                             {% if current_user.is_authenticated %}
                             <button class="add-to-cart btn-primary"
-                                    data-product-id="{{ product.id }}"
-                                    data-product-name="{{ product.name }}">
+                                    data-product-id="{{ product.StockCode }}"
+                                    data-product-name="{{ product.Description }}">
                                 <span>Add to Cart</span>
                             </button>
                             <button class="buy-now btn-secondary"
-                                    data-product-id="{{ product.id }}"
-                                    data-product-name="{{ product.name }}">
+                                    data-product-id="{{ product.StockCode }}"
+                                    data-product-name="{{ product.Description }}">
                                 <span>Buy Now</span>
                             </button>
                             {% else %}
                             <button class="login-required btn-secondary"
-                                    data-product-name="{{ product.name }}">
+                                    data-product-name="{{ product.Description }}">
                                 <span>Login to Add</span>
                             </button>
                             {% endif %}
@@ -161,7 +161,12 @@
                     // Set loading state
                     setButtonLoading(this, true, 'Adding...', originalText);
                     
-                    fetch(`/add_to_cart/${productId}`)
+                    fetch(`/add_to_cart/${productId}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            }
+                        })
                         .then(response => response.json())
                         .then(data => {
                             if (data.success) {

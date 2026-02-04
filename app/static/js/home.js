@@ -31,15 +31,11 @@ document.addEventListener('DOMContentLoaded', function() {
             setButtonLoading(this, true, 'Adding...', originalText);
 
             // Send AJAX request to add to cart
-            fetch('/add_to_cart', {
+            fetch(`/add_to_cart/${productId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    product_id: productId,
-                    quantity: 1
-                })
+                }
             })
             .then(response => response.json())
             .then(data => {
