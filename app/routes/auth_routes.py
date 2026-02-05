@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from flask_login import login_user, logout_user, login_required, current_user
-from app.models.user import User, Admin, Seller
+from app.models.user import User, AdminSeller
 from app.extensions import login_manager
 from app.utils import db_helper
 
@@ -8,24 +8,19 @@ auth_bp = Blueprint('auth', __name__)
 
 @login_manager.user_loader
 def load_user(user_id):
-    # Check if it's an admin
-    if user_id.startswith('admin_'):
-        username = user_id.replace('admin_', '')
-        if username in ['admin', 'superadmin']:
-            return Admin(username)
-    # Check if it's a seller
-    elif user_id.startswith('seller_'):
-        username = user_id.replace('seller_', '')
-        if username in ['seller1', 'seller2']:
-            return Seller(username)
+    # Check if it's an admin_seller
+    if user_id.startswith('admin_seller_'):
+        username = user_id.replace('admin_seller_', '')
+        if username in ['admin', 'superadmin', 'seller1', 'seller2']:
+            return AdminSeller(username)
     # Regular user
     else:
         session_user_id = session.get('user_id')
         session_username = session.get('username')
-        
+
         if session_user_id == user_id and session_username:
             return User(session_user_id, session_username)
-    
+
     return None
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
@@ -82,48 +77,33 @@ def logout():
     session.pop('role', None)
     return redirect(url_for('auth.login'))
 
-@auth_bp.route('/admin/login', methods=['GET', 'POST'])
-def admin_login():
-    """Admin login page"""
-    if current_user.is_authenticated and hasattr(current_user, 'role') and current_user.role == 'admin':
-        return redirect(url_for('product.admin_dashboard'))
-    
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        
-        if username in ['admin', 'superadmin'] and password == 'admin123':
-            admin = Admin(username)
-            login_user(admin)
-            session['user_id'] = f'admin_{username}'
-            session['username'] = username
-            session['role'] = 'admin'
-            flash('Welcome, Admin!', 'success')
-            return redirect(url_for('product.admin_dashboard'))
-        else:
-            flash('Invalid admin credentials', 'error')
-    
-    return render_template('admin_login.html')
+@auth_bp.route('/admin_seller/login', methods=['GET', 'POST'])
+def admin_seller_login():
+    """Admin/Seller login page"""
+    if current_user.is_authenticated and hasattr(current_user, 'role') and current_user.role == 'admin_seller':
+        return redirect(url_for('product.admin_seller_dashboard'))
 
-@auth_bp.route('/seller/login', methods=['GET', 'POST'])
-def seller_login():
-    """Seller login page"""
-    if current_user.is_authenticated and hasattr(current_user, 'role') and current_user.role == 'seller':
-        return redirect(url_for('product.seller_dashboard'))
-    
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        
-        if username in ['seller1', 'seller2'] and password == 'seller123':
-            seller = Seller(username)
-            login_user(seller)
-            session['user_id'] = f'seller_{username}'
+
+        if username in ['admin', 'superadmin'] and password == 'admin123':
+            admin_seller = AdminSeller(username)
+            login_user(admin_seller)
+            session['user_id'] = f'admin_seller_{username}'
             session['username'] = username
-            session['role'] = 'seller'
+            session['role'] = 'admin_seller'
+            flash('Welcome, Admin!', 'success')
+            return redirect(url_for('product.admin_seller_dashboard'))
+        elif username in ['seller1', 'seller2'] and password == 'seller123':
+            admin_seller = AdminSeller(username)
+            login_user(admin_seller)
+            session['user_id'] = f'admin_seller_{username}'
+            session['username'] = username
+            session['role'] = 'admin_seller'
             flash('Welcome, Seller!', 'success')
-            return redirect(url_for('product.seller_dashboard'))
+            return redirect(url_for('product.admin_seller_dashboard'))
         else:
-            flash('Invalid seller credentials', 'error')
-    
-    return render_template('seller_login.html')
+            flash('Invalid credentials', 'error')
+
+    return render_template('admin_seller_login.html')

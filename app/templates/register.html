@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ShopSmart - Register</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
     <div class="walmart-form-container">
@@ -48,36 +48,5 @@
         {% endif %}
         {% endwith %}
     </div>
-    
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const formSkeleton = document.getElementById('form-skeleton');
-            const realForm = document.getElementById('real-form');
-            const registerBtn = document.getElementById('register-btn');
-            
-            // Initial page load: Show skeleton, then switch to real form
-            setTimeout(() => {
-                if (realForm) {
-                    formSkeleton.style.display = 'none';
-                    realForm.style.display = 'block';
-                }
-            }, 400);
-            
-            // Handle form submission with loading state
-            if (registerBtn && realForm) {
-                realForm.addEventListener('submit', function(e) {
-                    const buttonSpan = registerBtn.querySelector('span');
-                    const originalText = buttonSpan.textContent;
-                    
-                    // Set loading state
-                    registerBtn.disabled = true;
-                    registerBtn.classList.add('btn-loading');
-                    buttonSpan.textContent = 'Creating Account...';
-                    
-                    // Form will submit normally, but we show loading state
-                });
-            }
-        });
-    </script>
 </body>
 </html>

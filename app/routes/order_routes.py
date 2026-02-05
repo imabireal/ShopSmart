@@ -62,18 +62,19 @@ def checkout():
                     break
 
         if product:
-            item_total = product['price'] * quantity
+            item_total = product['price_inr'] * quantity
             total += item_total
-            cart_items_detail.append(f"{product['name']} x{quantity}")
+            cart_items_detail.append(f"{product['Description']} x{quantity}")
 
     # Add buy-now item to total if present
     buy_now_detail = ""
     if buy_now_item:
-        buy_now_total = buy_now_item['product']['price'] * buy_now_item['quantity']
+        buy_now_total = buy_now_item['product']['price_inr'] * buy_now_item['quantity']
         total += buy_now_total
-        buy_now_detail = f"{buy_now_item['product']['name']} x{buy_now_item['quantity']}"
+        buy_now_detail = f"{buy_now_item['product']['Description']} x{buy_now_item['quantity']}"
 
-    # Clear buy-now item after successful checkout (but keep cart items)
+    # Clear cart and buy-now item after successful checkout
+    session.pop('cart', None)
     session.pop('buy_now_item', None)
     session.modified = True
 

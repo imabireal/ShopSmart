@@ -38,13 +38,13 @@ def add_to_cart(product_id):
     else:
         cart[product_id] = 1
 
-    # Ensure all keys and values are strictly integers
+    # Ensure all keys are strings and values are positive integers
     cleaned_cart = {}
     for k, v in cart.items():
         try:
-            key = int(k) if isinstance(k, (int, str)) else None
+            key = str(k) if isinstance(k, (int, str)) else None
             value = int(v) if isinstance(v, (int, str)) else None
-            if key is not None and value is not None and key > 0 and value > 0:
+            if key is not None and value is not None and value > 0:
                 cleaned_cart[key] = value
         except (ValueError, TypeError):
             continue
