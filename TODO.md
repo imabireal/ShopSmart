@@ -1,3 +1,0 @@
-- [x] Identify the issue in add_to_cart functionality
-- [x] Fix the cart cleaning logic to handle string keys properly
-- [x] Test the add to cart functionality
