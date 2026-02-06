@@ -110,7 +110,9 @@ def buy_now_checkout():
         checkout_type = request.form.get('checkout_type', 'quick')
         product = buy_now_item['product']
         quantity = buy_now_item['quantity']
-        total = product['price'] * quantity
+        # Handle both price_inr (main products) and price (seller products)
+        price = product.get('price_inr', product.get('price', 0))
+        total = price * quantity
         
         if checkout_type == 'quick':
             # Process immediate buy-now purchase (no form data required)
@@ -168,7 +170,9 @@ def buy_now_checkout():
     # GET request - show buy-now checkout confirmation
     product = buy_now_item['product']
     quantity = buy_now_item['quantity']
-    total = product['price'] * quantity
+    # Handle both price_inr (main products) and price (seller products)
+    price = product.get('price_inr', product.get('price', 0))
+    total = price * quantity
     
     return render_template('buy_now_checkout.html', 
                          product=product, 

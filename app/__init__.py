@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request
 from config import Config
 from app.extensions import init_extensions
 
@@ -7,6 +7,31 @@ def create_app():
     app.config.from_object(Config)
 
     init_extensions(app)
+
+    # Import utils inside the function to avoid circular imports
+    from app.utils import utils
+
+    # Global before_request to clean session for all routes
+    @app.before_request
+    def clean_session():
+        """Clean session before each request to prevent serialization errors"""
+        try:
+            # Get the request path to determine if we're in checkout flow
+            request_path = request.path
+            
+            # Don't clean cart/buy_now_item if we're on checkout pages
+            # This prevents session clearing during active checkout
+            checkout_routes = ['/buy_now_checkout', '/checkout', '/buy_now']
+            is_checkout_flow = any(route in request_path for route in checkout_routes)
+            
+            if not is_checkout_flow:
+                # Clean cart data only when not in checkout flow
+                utils.clean_cart_session()
+                # Clean buy-now item data only when not in checkout flow
+                utils.clean_buy_now_session()
+        except Exception as e:
+            # If cleaning fails, reset entire session
+            utils.reset_session()
 
     # Register blueprints
     from app.routes.auth_routes import auth_bp

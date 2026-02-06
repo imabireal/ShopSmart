@@ -5,18 +5,6 @@ from app.utils import utils
 
 product_bp = Blueprint('product', __name__)
 
-@product_bp.before_request
-def before_request():
-    """Clean session before each request to prevent serialization errors"""
-    try:
-        # Clean cart data
-        utils.clean_cart_session()
-        # Clean buy-now item data
-        utils.clean_buy_now_session()
-    except Exception as e:
-        # If cleaning fails, reset entire session
-        utils.reset_session()
-
 @product_bp.route('/')
 def home():
     # Clean and validate cart from session

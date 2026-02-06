@@ -2,7 +2,8 @@
 
 document.addEventListener('DOMContentLoaded', function() {
     // Form elements
-    const checkoutForm = document.getElementById('checkout-form');
+    const normalCheckoutForm = document.getElementById('normal-checkout-form');
+    const quickPurchaseBtn = document.getElementById('quick-purchase-btn');
     const itemSkeleton = document.getElementById('item-skeleton');
     const realItemDetails = document.getElementById('real-item-details');
 
@@ -16,66 +17,144 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Utility function to set button loading state
     function setButtonLoading(button, isLoading, text, originalText) {
+        if (!button) return;
         const span = button.querySelector('span');
-        if (isLoading) {
-            button.disabled = true;
-            button.style.opacity = '0.7';
-            span.textContent = text;
+        if (span) {
+            if (isLoading) {
+                button.disabled = true;
+                button.style.opacity = '0.7';
+                span.textContent = text;
+            } else {
+                button.disabled = false;
+                button.style.opacity = '1';
+                span.textContent = originalText || text;
+            }
         } else {
-            button.disabled = false;
-            button.style.opacity = '1';
-            span.textContent = originalText;
+            // Handle case where button doesn't have a span
+            if (isLoading) {
+                button.disabled = true;
+                button.style.opacity = '0.7';
+                button.dataset.originalText = button.textContent;
+                button.textContent = text;
+            } else {
+                button.disabled = false;
+                button.style.opacity = '1';
+                button.textContent = button.dataset.originalText || text;
+            }
         }
     }
 
-    // Handle form submission
-    if (checkoutForm) {
-        checkoutForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            // Get form data
-            const formData = new FormData(this);
-            const submitButton = this.querySelector('button[type="submit"]');
-            const originalText = submitButton.querySelector('span').textContent;
-
-            // Basic client-side validation
-            const name = formData.get('name').trim();
-            const address = formData.get('address').trim();
-            const cardNumber = formData.get('card_number').trim();
-            const expiryDate = formData.get('expiry_date').trim();
-            const cvv = formData.get('cvv').trim();
-
-            if (!name || !address || !cardNumber || !expiryDate || !cvv) {
-                alert('Please fill in all required fields');
-                return;
-            }
-
+    // Handle normal checkout form submission
+    if (normalCheckoutForm) {
+        normalCheckoutForm.addEventListener('submit', function(e) {
+            e.preventDefault(); // Always prevent default to handle with JavaScript
+            
+            const submitBtn = document.getElementById('normal-checkout-btn');
+            const originalText = submitBtn.querySelector('span').textContent;
+            
             // Set loading state
-            setButtonLoading(submitButton, true, 'Processing Checkout...', originalText);
-
-            // Submit form
+            setButtonLoading(submitBtn, true, 'Processing...', originalText);
+            
+            // Submit via fetch for better UX and error handling
+            const formData = new FormData(this);
+            formData.append('checkout_type', 'normal');
+            
             fetch('/buy_now_checkout', {
                 method: 'POST',
                 body: formData
             })
             .then(response => {
                 if (response.redirected) {
+                    // If redirected, follow the redirect
                     window.location.href = response.url;
+                } else if (response.ok) {
+                    // Check for flash messages in the response
+                    return response.text().then(html => {
+                        // Check if the response contains success message
+                        if (html.includes('Checkout completed successfully') || 
+                            html.includes('Quick purchase completed successfully')) {
+                            window.location.href = '/';
+                        } else {
+                            // Parse the HTML and extract flash messages
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(html, 'text/html');
+                            const messages = doc.querySelectorAll('.message, [class*="flash"], [class*="message"]');
+                            
+                            if (messages.length > 0) {
+                                // Re-render the page with messages
+                                document.body.innerHTML = html;
+                            } else {
+                                window.location.href = '/';
+                            }
+                        }
+                    });
                 } else {
-                    return response.text();
-                }
-            })
-            .then(data => {
-                if (data) {
-                    // Handle any error messages
-                    alert('An error occurred during checkout. Please try again.');
-                    setButtonLoading(submitButton, false, '', originalText);
+                    throw new Error('Checkout failed');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
+                setButtonLoading(submitBtn, false, '', originalText);
+                alert('An error occurred during checkout. Please try again.');
+            });
+        });
+    }
+
+    // Handle quick purchase button click
+    if (quickPurchaseBtn) {
+        quickPurchaseBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const originalText = this.querySelector('span').textContent;
+            
+            // Set loading state
+            setButtonLoading(this, true, 'Processing...', originalText);
+            
+            // Submit via fetch for better UX
+            const formData = new FormData();
+            formData.append('checkout_type', 'quick');
+            
+            fetch('/buy_now_checkout', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.redirected) {
+                    // If redirected, follow the redirect
+                    window.location.href = response.url;
+                } else if (response.ok) {
+                    // Check for success message in the response
+                    return response.text().then(html => {
+                        // Check if the response contains success message
+                        if (html.includes('Checkout completed successfully') || 
+                            html.includes('Quick purchase completed successfully')) {
+                            window.location.href = '/';
+                        } else {
+                            // Parse the HTML and check for flash messages
+                            const parser = new DOMParser();
+                            const doc = parser.parseFromString(html, 'text/html');
+                            const messages = doc.querySelectorAll('.message, [class*="flash"], [class*="message"]');
+                            
+                            if (messages.length > 0) {
+                                // Re-render the page with messages
+                                document.body.innerHTML = html;
+                            } else {
+                                // Check for error in response
+                                if (html.includes('error') || html.includes('Error')) {
+                                    alert('An error occurred. Please try again.');
+                                }
+                                window.location.href = '/';
+                            }
+                        }
+                    });
+                } else {
+                    throw new Error('Purchase failed');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                setButtonLoading(this, false, '', originalText);
                 alert('An error occurred. Please try again.');
-                setButtonLoading(submitButton, false, '', originalText);
             });
         });
     }

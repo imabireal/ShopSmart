@@ -136,7 +136,7 @@ def remove_from_cart(product_id):
     
     return jsonify({'success': True, 'cart_count': cart_count})
 
-@cart_bp.route('/buy_now/<int:product_id>')
+@cart_bp.route('/buy_now/<product_id>')
 @login_required
 def buy_now(product_id):
     # Check if product exists
@@ -154,12 +154,13 @@ def buy_now(product_id):
         return redirect(url_for('product.home'))
 
     # Store buy-now item in separate session variable
+    # Ensure product_id is stored as string for consistency
     session['buy_now_item'] = {
-        'product_id': product_id,
+        'product_id': str(product_id),
         'quantity': 1,
         'product': product
     }
     session.modified = True
 
     # Redirect to immediate buy-now checkout
-    return redirect(url_for('cart.buy_now_checkout'))
+    return redirect(url_for('order.buy_now_checkout'))

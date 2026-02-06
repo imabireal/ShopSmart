@@ -194,9 +194,12 @@ def delete_seller_product(seller_username, product_id):
 def get_product_by_id(product_id):
     """Get a main product by ID."""
     products_col = db["products"]
-    # Convert to string since StockCode is stored as string in the database
-    #stock_code = str(product_id)
-    return products_col.find_one({"StockCode": product_id}, {"_id": 0})
+    # Search by id field (integer)
+    try:
+        return products_col.find_one({"id": int(product_id)}, {"_id": 0})
+    except (ValueError, TypeError):
+        # If conversion fails, try as string
+        return products_col.find_one({"id": str(product_id)}, {"_id": 0})
 
 def get_seller_product_by_id(seller_username, product_id):
     """Get a seller product by ID."""
