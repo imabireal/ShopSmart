@@ -21,8 +21,21 @@ def create_app():
             
             # Don't clean cart/buy_now_item if we're on checkout pages
             # This prevents session clearing during active checkout
-            checkout_routes = ['/buy_now_checkout', '/checkout', '/buy_now']
-            is_checkout_flow = any(route in request_path for route in checkout_routes)
+            # Important: Order matters - check exact matches first, then prefixes
+            # Use path startswith for prefix matching to avoid false positives
+            
+            # Exact matches (must check first to avoid false positives)
+            is_exact_checkout_route = request_path in ['/buy_now_checkout', '/checkout']
+            
+            # Prefix matches (must have proper path boundaries)
+            # /buy_now/ requires following / or end of string
+            is_buy_now_prefix = (
+                request_path.startswith('/buy_now/') or
+                request_path == '/buy_now' or
+                request_path.startswith('/buy_now_checkout/')
+            )
+            
+            is_checkout_flow = is_exact_checkout_route or is_buy_now_prefix
             
             if not is_checkout_flow:
                 # Clean cart data only when not in checkout flow

@@ -68,7 +68,15 @@ def clean_buy_now_session():
         if not buy_now_item:
             return None
         
-        if not isinstance(buy_now_item, dict) or 'product' not in buy_now_item or 'quantity' not in buy_now_item:
+        if not isinstance(buy_now_item, dict):
+            logger.warning("buy_now_item is not a dict, removing")
+            session.pop('buy_now_item', None)
+            session.modified = True
+            return None
+        
+        # Only validate keys if they exist
+        if 'product' not in buy_now_item or 'quantity' not in buy_now_item:
+            logger.warning("buy_now_item missing required keys (product, quantity), removing")
             session.pop('buy_now_item', None)
             session.modified = True
             return None
@@ -76,7 +84,16 @@ def clean_buy_now_session():
         product = buy_now_item['product']
         quantity = buy_now_item['quantity']
         
-        if not isinstance(product, dict) or not isinstance(quantity, int) or quantity <= 0:
+        # Check if product is a valid dict (can be empty dict for valid session structure)
+        if not isinstance(product, dict):
+            logger.warning("buy_now_item.product is not a dict, removing")
+            session.pop('buy_now_item', None)
+            session.modified = True
+            return None
+        
+        # Check quantity
+        if not isinstance(quantity, int) or quantity <= 0:
+            logger.warning("buy_now_item.quantity is invalid, removing")
             session.pop('buy_now_item', None)
             session.modified = True
             return None

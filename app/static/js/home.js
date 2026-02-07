@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             // Small delay to show loading state before redirect
             setTimeout(() => {
-                window.location.href = `/buy_now/${productId}`;
+                window.location.href = `/buy_now_checkout/${productId}`;
             }, 500);
         });
     });

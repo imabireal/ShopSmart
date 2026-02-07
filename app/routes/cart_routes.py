@@ -139,28 +139,27 @@ def remove_from_cart(product_id):
 @cart_bp.route('/buy_now/<product_id>')
 @login_required
 def buy_now(product_id):
-    # Check if product exists
+    # Check if product exists in main products first
     product = db_helper.get_product_by_id(product_id)
 
+    # If not found in main products, search seller products
     if not product:
         seller_usernames = ['seller1', 'seller2']  # For now, hardcoded sellers from models
         for seller in seller_usernames:
             product = db_helper.get_seller_product_by_id(seller, product_id)
             if product:
+                # Add seller info to product for consistency
+                product['seller'] = seller
                 break
 
-    if not product:
-        flash('Product not found', 'error')
+    # If product exists, redirect directly to buy_now_checkout with product_id
+    if product:
+        # Clear any existing buy_now_item from session (no longer needed)
+        session.pop('buy_now_item', None)
+        session.modified = True
+        
+        # Redirect directly to buy-now checkout with product_id
+        return redirect(url_for('order.buy_now_checkout', product_id=product_id))
+    else:
+        flash('Product not found. Please select a valid product.', 'error')
         return redirect(url_for('product.home'))
-
-    # Store buy-now item in separate session variable
-    # Ensure product_id is stored as string for consistency
-    session['buy_now_item'] = {
-        'product_id': str(product_id),
-        'quantity': 1,
-        'product': product
-    }
-    session.modified = True
-
-    # Redirect to immediate buy-now checkout
-    return redirect(url_for('order.buy_now_checkout'))

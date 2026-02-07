@@ -7,6 +7,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const itemSkeleton = document.getElementById('item-skeleton');
     const realItemDetails = document.getElementById('real-item-details');
 
+    // Get product_id from the page
+    const productIdElement = document.getElementById('product-id');
+    const productId = productIdElement ? productIdElement.value : null;
+
     // Show real item details after a short delay (simulating loading)
     setTimeout(() => {
         if (itemSkeleton && realItemDetails) {
@@ -59,7 +63,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const formData = new FormData(this);
             formData.append('checkout_type', 'normal');
             
-            fetch('/buy_now_checkout', {
+            // Include product_id in the URL
+            const checkoutUrl = productId ? `/buy_now_checkout/${productId}` : '/buy_now_checkout';
+            
+            fetch(checkoutUrl, {
                 method: 'POST',
                 body: formData
             })
@@ -114,7 +121,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const formData = new FormData();
             formData.append('checkout_type', 'quick');
             
-            fetch('/buy_now_checkout', {
+            // Include product_id in the URL
+            const checkoutUrl = productId ? `/buy_now_checkout/${productId}` : '/buy_now_checkout';
+            
+            fetch(checkoutUrl, {
                 method: 'POST',
                 body: formData
             })

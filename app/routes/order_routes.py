@@ -96,27 +96,44 @@ def checkout():
     flash(order_summary, 'success')
     return redirect(url_for('product.home'))
 
-@order_bp.route('/buy_now_checkout', methods=['GET', 'POST'])
+@order_bp.route('/buy_now_checkout/<product_id>', methods=['GET', 'POST'])
 @login_required
-def buy_now_checkout():
-    buy_now_item = session.get('buy_now_item')
+def buy_now_checkout(product_id):
+    # Fetch product directly from database
+    product = db_helper.get_product_by_id(product_id)
+    print(product)
+    # If not found in main products, search seller products
+    if not product:
+        seller_usernames = ['seller1', 'seller2']  # For now, hardcoded sellers from models
+        for seller in seller_usernames:
+            product = db_helper.get_seller_product_by_id(seller, product_id)
+            if product:
+                # Add seller info to product for consistency
+                product['seller'] = seller
+                break
     
-    # Check if there's a buy-now item to process
-    if not buy_now_item:
-        flash('No buy-now item found', 'error')
+    # Check if there's a product to process
+    if not product:
+        flash('Product not found', 'error')
         return redirect(url_for('product.home'))
+    
+    # Clear any existing buy_now_item from session (no longer needed)
+    session.pop('buy_now_item', None)
+    session.modified = True
+    
+    # Set quantity to 1 for buy-now
+    quantity = 1
+    
+    # Handle both price_inr (main products) and price (seller products)
+    price = product.get('price_inr', product.get('price', 0))
+    total = price * quantity
     
     if request.method == 'POST':
         checkout_type = request.form.get('checkout_type', 'quick')
-        product = buy_now_item['product']
-        quantity = buy_now_item['quantity']
-        # Handle both price_inr (main products) and price (seller products)
-        price = product.get('price_inr', product.get('price', 0))
-        total = price * quantity
         
         if checkout_type == 'quick':
             # Process immediate buy-now purchase (no form data required)
-            order_summary = f"Quick purchase completed successfully! {product['name']} x{quantity} - Total: ${total:.2f}"
+            order_summary = f"Quick purchase completed successfully! {product['Description']} x{quantity} - Total: ${total:.2f}"
             
         elif checkout_type == 'normal':
             # Process normal checkout with form data
@@ -129,12 +146,12 @@ def buy_now_checkout():
             # Validate required fields
             if not all([name, address, card_number, expiry_date, cvv]):
                 flash('Please fill in all required fields', 'error')
-                return redirect(url_for('order.buy_now_checkout'))
+                return redirect(url_for('order.buy_now_checkout', product_id=product_id))
             
             # Basic card number validation (demo purposes)
             if len(card_number.replace(' ', '')) < 13:
                 flash('Invalid card number', 'error')
-                return redirect(url_for('order.buy_now_checkout'))
+                return redirect(url_for('order.buy_now_checkout', product_id=product_id))
             
             # Basic expiry date validation
             try:
@@ -143,24 +160,20 @@ def buy_now_checkout():
                     raise ValueError('Invalid month')
             except:
                 flash('Invalid expiry date format (MM/YY)', 'error')
-                return redirect(url_for('order.buy_now_checkout'))
+                return redirect(url_for('order.buy_now_checkout', product_id=product_id))
             
             # Basic CVV validation
             if len(cvv) < 3:
                 flash('Invalid CVV', 'error')
-                return redirect(url_for('order.buy_now_checkout'))
+                return redirect(url_for('order.buy_now_checkout', product_id=product_id))
             
             # Mask card number for security (show only last 4 digits)
             masked_card = f"**** **** **** {card_number[-4:]}"
             
-            order_summary = f"Checkout completed successfully! {product['name']} x{quantity} - Total: ${total:.2f}"
+            order_summary = f"Checkout completed successfully! {product['Description']} x{quantity} - Total: ${total:.2f}"
             order_summary += f"<br>Ship to: {name}"
             order_summary += f"<br>Address: {address}"
             order_summary += f"<br>Payment: {masked_card}"
-        
-        # Clear buy-now item after successful purchase
-        session.pop('buy_now_item', None)
-        session.modified = True
         
         # Create success message
         flash(order_summary, 'success')
@@ -168,12 +181,6 @@ def buy_now_checkout():
         return redirect(url_for('product.home'))
     
     # GET request - show buy-now checkout confirmation
-    product = buy_now_item['product']
-    quantity = buy_now_item['quantity']
-    # Handle both price_inr (main products) and price (seller products)
-    price = product.get('price_inr', product.get('price', 0))
-    total = price * quantity
-    
     return render_template('buy_now_checkout.html', 
                          product=product, 
                          quantity=quantity, 

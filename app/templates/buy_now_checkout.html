@@ -12,10 +12,10 @@
         <div class="max-w-6xl mx-auto flex justify-between items-center">
             <h1 class="text-2xl font-bold">ShopSmart - Quick Purchase</h1>
             <nav class="flex items-center space-x-4">
-                <a href="{{ url_for('home') }}" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition duration-200">
+                <a href="{{ url_for('product.home') }}" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition duration-200">
                     Continue Shopping
                 </a>
-                <a href="{{ url_for('logout') }}" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded transition duration-200">Logout</a>
+                <a href="{{ url_for('auth.logout') }}" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded transition duration-200">Logout</a>
             </nav>
         </div>
     </header>
@@ -26,6 +26,9 @@
                 <h2 class="text-3xl font-bold text-gray-800 mb-2">Quick Purchase</h2>
                 <p class="text-gray-600">Review your item and complete your purchase</p>
             </div>
+            
+            <!-- Hidden product_id for JavaScript -->
+            <input type="hidden" id="product-id" value="{{ product.id or product['id'] }}">
 
             <!-- Item Details Skeleton (shown initially) -->
             <div id="item-skeleton" class="bg-orange-50 border-2 border-orange-200 rounded-lg p-6 mb-8">
@@ -149,7 +152,7 @@
                 
                 <!-- Cancel Option -->
                 <div class="text-center">
-                    <a href="{{ url_for('home') }}" class="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white font-semibold rounded-lg transition duration-200">
+                    <a href="{{ url_for('product.home') }}" class="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white font-semibold rounded-lg transition duration-200">
                         Cancel
                     </a>
                 </div>

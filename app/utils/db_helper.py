@@ -196,10 +196,12 @@ def get_product_by_id(product_id):
     products_col = db["products"]
     # Search by id field (integer)
     try:
-        return products_col.find_one({"id": int(product_id)}, {"_id": 0})
+        product = products_col.find_one({"StockCode": str(product_id)})
+        print(product)
+        return product
     except (ValueError, TypeError):
         # If conversion fails, try as string
-        return products_col.find_one({"id": str(product_id)}, {"_id": 0})
+        return products_col.find_one({"StockCode": str(product_id)}, {"_id": 0})
 
 def get_seller_product_by_id(seller_username, product_id):
     """Get a seller product by ID."""
