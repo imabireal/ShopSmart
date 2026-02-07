@@ -61,7 +61,7 @@
                                     <span class="admin-badge admin-badge-seller">Seller: {{ product.seller }}</span>
                                     {% endif %}
                                 </td>
-                                <td>${{ "%.2f"|format(product.price) }}</td>
+                                <td>₹{{ "%.2f"|format(product.price) }}</td>
                                 <td>
                                     {% if product.is_seller_product %}
                                     <span class="admin-badge admin-badge-seller">Seller Product</span>
@@ -103,7 +103,7 @@
                 <h4>{{ seller }} ({{ products|length }} products)</h4>
                 <ul>
                     {% for product in products %}
-                    <li>{{ product.name }} - ${{ "%.2f"|format(product.price) }}</li>
+                    <li>{{ product.name }} - ₹{{ "%.2f"|format(product.price) }}</li>
                     {% endfor %}
                 </ul>
             </div>

@@ -42,7 +42,7 @@
                     <img src="{{ image_list[0] }}" alt="{{ product.Description }}" class="product-image">
                     <div class="product-info">
                         <h3 class="product-title">{{ product.Description }}</h3>
-                        <p class="product-price">${{ product.price_inr }}</p>
+                        <p class="product-price">₹{{ product.price_inr }}</p>
                         {% if product.seller %}
                         <p class="text-sm text-gray-500">by {{ product.seller }}</p>
                         {% endif %}
