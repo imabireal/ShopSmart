@@ -197,7 +197,6 @@ def get_product_by_id(product_id):
     # Search by id field (integer)
     try:
         product = products_col.find_one({"StockCode": str(product_id)})
-        print(product)
         return product
     except (ValueError, TypeError):
         # If conversion fails, try as string

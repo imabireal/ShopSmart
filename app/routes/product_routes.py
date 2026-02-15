@@ -80,7 +80,14 @@ def admin_seller_dashboard():
         flash('Access denied. Admin/Seller only.', 'error')
         return redirect(url_for('product.home'))
 
-    all_products = db_helper.get_products()
+    # Get main products and mark them as not seller products
+    all_products = []
+    for product in db_helper.get_products():
+        all_products.append({
+            **product,
+            'seller': None,
+            'is_seller_product': False
+        })
 
     # Add seller products info
     seller_usernames = ['seller1', 'seller2']  # For now, hardcoded sellers from models
