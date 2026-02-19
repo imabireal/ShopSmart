@@ -75,6 +75,68 @@ def get_user_by_id(user_id):
         pass
     return None
 
+# ==================== ADMIN/SELLER DATABASE FUNCTIONS ====================
+
+def create_admin_seller(username, password, role='seller'):
+    """Create a new admin or seller user."""
+    admin_sellers_col = db["admin_sellers"]
+    if admin_sellers_col.find_one({'username': username}):
+        return {
+            "success": False,
+            "message": "Username already exists"
+        }
+    
+    salt = bcrypt.gensalt()
+    hashed_pw = bcrypt.hashpw(password.encode('utf-8'), salt)
+
+    result = admin_sellers_col.insert_one({
+        "username": username,
+        "password": hashed_pw,
+        "role": role
+    })
+    
+    return {
+        "success": True,
+        "admin_seller": {
+            "_id": str(result.inserted_id),
+            "username": username,
+            "role": role
+        }
+    }
+
+def login_admin_seller(username, password):
+    """Authenticate an admin or seller against stored records."""
+    admin_sellers_col = db["admin_sellers"]
+    admin_seller = admin_sellers_col.find_one({"username": username})
+    
+    if admin_seller:
+        if bcrypt.checkpw(password.encode('utf-8'), admin_seller["password"]):
+            return {
+                "success": True,
+                "admin_seller": {
+                    "_id": str(admin_seller["_id"]),
+                    "username": admin_seller["username"],
+                    "role": admin_seller.get("role", "seller")
+                }
+            }
+    
+    return {
+        "success": False,
+        "message": "Invalid username or password."
+    }
+
+def get_admin_seller_by_username(username):
+    """Fetch an admin/seller by username."""
+    admin_sellers_col = db["admin_sellers"]
+    admin_seller = admin_sellers_col.find_one({"username": username})
+    if admin_seller:
+        return {
+            "_id": str(admin_seller["_id"]),
+            "username": admin_seller["username"],
+            "role": admin_seller.get("role", "seller")
+        }
+    return None
+
 # ==================== PRODUCT DATABASE FUNCTIONS ====================
 
 def get_products():

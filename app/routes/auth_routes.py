@@ -11,8 +11,9 @@ def load_user(user_id):
     # Check if it's an admin_seller
     if user_id.startswith('admin_seller_'):
         username = user_id.replace('admin_seller_', '')
-        if username in ['admin', 'superadmin', 'seller1', 'seller2']:
-            return AdminSeller(username)
+        admin_seller_data = db_helper.get_admin_seller_by_username(username)
+        if admin_seller_data:
+            return AdminSeller(admin_seller_data["username"], admin_seller_data["role"])
     # Regular user
     else:
         session_user_id = session.get('user_id')
@@ -80,28 +81,28 @@ def logout():
 @auth_bp.route('/admin_seller/login', methods=['GET', 'POST'])
 def admin_seller_login():
     """Admin/Seller login page"""
-    if current_user.is_authenticated and hasattr(current_user, 'role') and current_user.role == 'admin_seller':
+    if current_user.is_authenticated and hasattr(current_user, 'role') and current_user.role in ['admin', 'seller']:
         return redirect(url_for('product.admin_seller_dashboard'))
 
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
 
-        if username in ['admin', 'superadmin'] and password == 'admin123':
-            admin_seller = AdminSeller(username)
+        result = db_helper.login_admin_seller(username, password)
+        
+        if result["success"]:
+            admin_seller_data = result["admin_seller"]
+            admin_seller = AdminSeller(admin_seller_data["username"], admin_seller_data["role"])
             login_user(admin_seller)
-            session['user_id'] = f'admin_seller_{username}'
-            session['username'] = username
-            session['role'] = 'admin_seller'
-            flash('Welcome, Admin!', 'success')
-            return redirect(url_for('product.admin_seller_dashboard'))
-        elif username in ['seller1', 'seller2'] and password == 'seller123':
-            admin_seller = AdminSeller(username)
-            login_user(admin_seller)
-            session['user_id'] = f'admin_seller_{username}'
-            session['username'] = username
-            session['role'] = 'admin_seller'
-            flash('Welcome, Seller!', 'success')
+            session['user_id'] = f'admin_seller_{admin_seller_data["username"]}'
+            session['username'] = admin_seller_data["username"]
+            session['role'] = admin_seller_data["role"]
+            
+            if admin_seller_data["role"] == 'admin':
+                flash('Welcome, Admin!', 'success')
+            else:
+                flash('Welcome, Seller!', 'success')
+                
             return redirect(url_for('product.admin_seller_dashboard'))
         else:
             flash('Invalid credentials', 'error')

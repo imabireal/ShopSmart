@@ -125,9 +125,11 @@ def update_cart():
 
     return jsonify({'success': True, 'cart_count': cart_count})
 
-@cart_bp.route('/remove_from_cart/<int:product_id>', methods=['POST'])
+@cart_bp.route('/remove_from_cart/<product_id>', methods=['POST'])
 @login_required
 def remove_from_cart(product_id):
+    #product_id = db_helper.get_product_by_id(product_id)
+    print(product_id)
     cart = session.get('cart', {})
     cart.pop(product_id, None)
     session['cart'] = cart

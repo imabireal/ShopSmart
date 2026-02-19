@@ -323,7 +323,7 @@
             }
             
             function removeCartItem(productId, itemElement, button, originalText) {
-                fetch(`/remove_from_cart/₹{productId}`, {
+                fetch(`/remove_from_cart/${productId}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
