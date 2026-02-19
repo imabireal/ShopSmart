@@ -89,20 +89,9 @@ def admin_seller_dashboard():
             'is_seller_product': False
         })
 
-    # Add seller products info
-    seller_usernames = ['seller1', 'seller2']  # For now, hardcoded sellers from models
-    seller_products = {}
-    for seller in seller_usernames:
-        seller_prods = db_helper.get_seller_products(seller)
-        seller_products[seller] = seller_prods
-        for product in seller_prods:
-            all_products.append({
-                **product,
-                'seller': seller,
-                'is_seller_product': True
-            })
 
-    return render_template('admin_seller_dashboard.html', products=all_products, seller_products=seller_products)
+
+    return render_template('admin_seller_dashboard.html', products=all_products, seller_products={})
 
 @product_bp.route('/admin_seller/add_product', methods=['GET', 'POST'])
 @login_required
@@ -134,19 +123,6 @@ def admin_seller_edit_product(product_id):
     # Find product in main catalog
     product = db_helper.get_product_by_id(product_id)
 
-    # If not found, check seller products
-    is_seller_product = False
-    seller_username = None
-    if not product:
-        seller_usernames = ['seller1', 'seller2']  # For now, hardcoded sellers from models
-        for seller in seller_usernames:
-            product = db_helper.get_seller_product_by_id(seller, product_id)
-            if product:
-                product['seller'] = seller
-                is_seller_product = True
-                seller_username = seller
-                break
-
     if not product:
         flash('Product not found', 'error')
         return redirect(url_for('product.admin_seller_dashboard'))
@@ -177,14 +153,7 @@ def admin_seller_delete_product(product_id):
     if db_helper.delete_product(product_id):
         flash('Product deleted successfully!', 'success')
     else:
-        # Check seller products
-        seller_usernames = ['seller1', 'seller2']  # For now, hardcoded sellers from models
-        for seller in seller_usernames:
-            if db_helper.delete_seller_product(seller, product_id):
-                flash('Seller product deleted successfully!', 'success')
-                break
-        else:
-            flash('Product not found', 'error')
+        flash('Product not found', 'error')
 
     return redirect(url_for('product.admin_seller_dashboard'))
 

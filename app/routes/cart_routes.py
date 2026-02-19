@@ -15,15 +15,8 @@ def add_to_cart(product_id):
             'redirect': url_for('auth.login')
         }), 401
 
-    # Check if product exists (search in both main and seller products)
+    # Check if product exists
     product = db_helper.get_product_by_id(product_id)
-    
-    if not product:
-        seller_usernames = ['seller1', 'seller2']  # For now, hardcoded sellers from models
-        for seller in seller_usernames:
-            product = db_helper.get_seller_product_by_id(seller, product_id)
-            if product:
-                break
 
     if not product:
         return jsonify({'success': False, 'message': 'Product not found'}), 404
@@ -72,14 +65,6 @@ def cart():
     
     for product_id, quantity in cart.items():
         product = db_helper.get_product_by_id(product_id)
-
-        # If not found in main products, search seller products
-        if not product:
-            seller_usernames = ['seller1', 'seller2']  # For now, hardcoded sellers from models
-            for seller in seller_usernames:
-                product = db_helper.get_seller_product_by_id(seller, product_id)
-                if product:
-                    break
 
         if product:
             item_total = product['price_inr'] * quantity
@@ -141,20 +126,9 @@ def remove_from_cart(product_id):
 @cart_bp.route('/buy_now/<product_id>')
 @login_required
 def buy_now(product_id):
-    # Check if product exists in main products first
+    # Check if product exists
     product = db_helper.get_product_by_id(product_id)
 
-    # If not found in main products, search seller products
-    if not product:
-        seller_usernames = ['seller1', 'seller2']  # For now, hardcoded sellers from models
-        for seller in seller_usernames:
-            product = db_helper.get_seller_product_by_id(seller, product_id)
-            if product:
-                # Add seller info to product for consistency
-                product['seller'] = seller
-                break
-
-    # If product exists, redirect directly to buy_now_checkout with product_id
     if product:
         # Clear any existing buy_now_item from session (no longer needed)
         session.pop('buy_now_item', None)

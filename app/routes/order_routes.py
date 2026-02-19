@@ -54,13 +54,6 @@ def checkout():
     for product_id, quantity in cart.items():
         product = db_helper.get_product_by_id(product_id)
 
-        if not product:
-            seller_usernames = ['seller1', 'seller2']  # For now, hardcoded sellers from models
-            for seller in seller_usernames:
-                product = db_helper.get_seller_product_by_id(seller, product_id)
-                if product:
-                    break
-
         if product:
             item_total = product['price_inr'] * quantity
             total += item_total
@@ -101,16 +94,6 @@ def checkout():
 def buy_now_checkout(product_id):
     # Fetch product directly from database
     product = db_helper.get_product_by_id(product_id)
-    print(product)
-    # If not found in main products, search seller products
-    if not product:
-        seller_usernames = ['seller1', 'seller2']  # For now, hardcoded sellers from models
-        for seller in seller_usernames:
-            product = db_helper.get_seller_product_by_id(seller, product_id)
-            if product:
-                # Add seller info to product for consistency
-                product['seller'] = seller
-                break
     
     # Check if there's a product to process
     if not product:
