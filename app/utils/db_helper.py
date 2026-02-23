@@ -1,14 +1,17 @@
 import pymongo
 import bcrypt
+import logging
+from config import Config
 import os
 from dotenv import load_dotenv
 # Load variables from .env into the environment
 load_dotenv()
+# Set up logging
+logger = logging.getLogger('flask-ecommerce')
 
 # Mongo db server
-client = pymongo.MongoClient(os.getenv('mongodb_url'),
-                             tlsAllowInvalidCertificates=True)
-db = client["mydatabase"]
+client = pymongo.MongoClient(os.getenv('mongodb_url'),tlsAllowInvalidCertificates=True)
+db = client["shop_smart"]
 
 def create_user(username, password):
     """Securely registers a new user."""
@@ -254,15 +257,13 @@ def delete_seller_product(seller_username, product_id):
     return result.deleted_count > 0
 
 def get_product_by_id(product_id):
-    """Get a main product by ID."""
+    """Get a main product by StockCode."""
     products_col = db["products"]
-    # Search by id field (integer)
     try:
-        product = products_col.find_one({"StockCode": str(product_id)})
-        return product
-    except (ValueError, TypeError):
-        # If conversion fails, try as string
         return products_col.find_one({"StockCode": str(product_id)}, {"_id": 0})
+    except Exception as e:
+        logger.error(f"Error finding product: {e}")
+        return None
 
 def get_seller_product_by_id(seller_username, product_id):
     """Get a seller product by ID."""

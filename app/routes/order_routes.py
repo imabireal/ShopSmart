@@ -5,46 +5,27 @@ import app.utils.utils as utils
 
 order_bp = Blueprint('order', __name__)
 
+
 @order_bp.route('/checkout', methods=['POST'])
 @login_required
 def checkout():
     cart = session.get('cart', {})
     buy_now_item = session.get('buy_now_item')
 
-    # Check if there's something to checkout
     if not cart and not buy_now_item:
         flash('Your cart is empty', 'error')
         return redirect(url_for('cart.cart'))
 
-    # Get checkout data
     name = request.form.get('name', '').strip()
     address = request.form.get('address', '').strip()
     card_number = request.form.get('card_number', '').strip()
     expiry_date = request.form.get('expiry_date', '').strip()
     cvv = request.form.get('cvv', '').strip()
 
-    # Validate required fields
-    if not all([name, address, card_number, expiry_date, cvv]):
-        flash('Please fill in all required fields', 'error')
-        return redirect(url_for('cart.cart'))
-
-    # Basic card number validation (demo purposes)
-    if len(card_number.replace(' ', '')) < 13:
-        flash('Invalid card number', 'error')
-        return redirect(url_for('cart.cart'))
-
-    # Basic expiry date validation
-    try:
-        month, year = expiry_date.split('/')
-        if int(month) < 1 or int(month) > 12:
-            raise ValueError('Invalid month')
-    except:
-        flash('Invalid expiry date format (MM/YY)', 'error')
-        return redirect(url_for('cart.cart'))
-
-    # Basic CVV validation
-    if len(cvv) < 3:
-        flash('Invalid CVV', 'error')
+    errors = utils.validate_checkout_data(name, address, card_number, expiry_date, cvv)
+    if errors:
+        for error in errors:
+            flash(error, 'error')
         return redirect(url_for('cart.cart'))
 
     # Calculate total from cart items
@@ -125,29 +106,11 @@ def buy_now_checkout(product_id):
             card_number = request.form.get('card_number', '').strip()
             expiry_date = request.form.get('expiry_date', '').strip()
             cvv = request.form.get('cvv', '').strip()
-            
-            # Validate required fields
-            if not all([name, address, card_number, expiry_date, cvv]):
-                flash('Please fill in all required fields', 'error')
-                return redirect(url_for('order.buy_now_checkout', product_id=product_id))
-            
-            # Basic card number validation (demo purposes)
-            if len(card_number.replace(' ', '')) < 13:
-                flash('Invalid card number', 'error')
-                return redirect(url_for('order.buy_now_checkout', product_id=product_id))
-            
-            # Basic expiry date validation
-            try:
-                month, year = expiry_date.split('/')
-                if int(month) < 1 or int(month) > 12:
-                    raise ValueError('Invalid month')
-            except:
-                flash('Invalid expiry date format (MM/YY)', 'error')
-                return redirect(url_for('order.buy_now_checkout', product_id=product_id))
-            
-            # Basic CVV validation
-            if len(cvv) < 3:
-                flash('Invalid CVV', 'error')
+
+            errors = utils.validate_checkout_data(name, address, card_number, expiry_date, cvv)
+            if errors:
+                for error in errors:
+                    flash(error, 'error')
                 return redirect(url_for('order.buy_now_checkout', product_id=product_id))
             
             # Mask card number for security (show only last 4 digits)

@@ -76,28 +76,19 @@ def home():
 @login_required
 def admin_seller_dashboard():
     """Admin/Seller dashboard - can manage all products"""
-    if not hasattr(current_user, 'role') or current_user.role != 'admin_seller':
+    if not hasattr(current_user, 'role') or current_user.role not in ['admin', 'seller']:
         flash('Access denied. Admin/Seller only.', 'error')
         return redirect(url_for('product.home'))
 
-    # Get main products and mark them as not seller products
-    all_products = []
-    for product in db_helper.get_products():
-        all_products.append({
-            **product,
-            'seller': None,
-            'is_seller_product': False
-        })
-
-
-
+    all_products = db_helper.get_products()
     return render_template('admin_seller_dashboard.html', products=all_products, seller_products={})
+
 
 @product_bp.route('/admin_seller/add_product', methods=['GET', 'POST'])
 @login_required
 def admin_seller_add_product():
     """Admin/Seller can add new products to main catalog"""
-    if not hasattr(current_user, 'role') or current_user.role != 'admin_seller':
+    if not hasattr(current_user, 'role') or current_user.role not in ['admin', 'seller']:
         flash('Access denied. Admin/Seller only.', 'error')
         return redirect(url_for('product.home'))
 
@@ -106,21 +97,20 @@ def admin_seller_add_product():
         price = float(request.form['price'])
 
         new_product = db_helper.add_product(name, price)
-
         flash(f'Product "{name}" added successfully!', 'success')
         return redirect(url_for('product.admin_seller_dashboard'))
 
     return render_template('admin_seller_add_product.html')
 
+
 @product_bp.route('/admin_seller/edit_product/<int:product_id>', methods=['GET', 'POST'])
 @login_required
 def admin_seller_edit_product(product_id):
     """Admin/Seller can edit any product"""
-    if not hasattr(current_user, 'role') or current_user.role != 'admin_seller':
+    if not hasattr(current_user, 'role') or current_user.role not in ['admin', 'seller']:
         flash('Access denied. Admin/Seller only.', 'error')
         return redirect(url_for('product.home'))
 
-    # Find product in main catalog
     product = db_helper.get_product_by_id(product_id)
 
     if not product:
@@ -130,26 +120,21 @@ def admin_seller_edit_product(product_id):
     if request.method == 'POST':
         name = request.form['name']
         price = float(request.form['price'])
-
-        if is_seller_product:
-            db_helper.update_seller_product(seller_username, product_id, name, price)
-        else:
-            db_helper.update_product(product_id, name, price)
-
+        db_helper.update_product(product_id, name, price)
         flash(f'Product "{name}" updated successfully!', 'success')
         return redirect(url_for('product.admin_seller_dashboard'))
 
-    return render_template('admin_seller_edit_product.html', product=product, is_seller_product=is_seller_product)
+    return render_template('admin_seller_edit_product.html', product=product)
+
 
 @product_bp.route('/admin_seller/delete_product/<int:product_id>')
 @login_required
 def admin_seller_delete_product(product_id):
     """Admin/Seller can delete any product"""
-    if not hasattr(current_user, 'role') or current_user.role != 'admin_seller':
+    if not hasattr(current_user, 'role') or current_user.role not in ['admin', 'seller']:
         flash('Access denied. Admin/Seller only.', 'error')
         return redirect(url_for('product.home'))
 
-    # Try to delete from main products first
     if db_helper.delete_product(product_id):
         flash('Product deleted successfully!', 'success')
     else:

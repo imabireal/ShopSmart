@@ -16,6 +16,7 @@ class User:
     def get_id(self):
         return self.id
 
+
 class AdminSeller:
     def __init__(self, username, role='seller'):
         self.username = username

@@ -1,5 +1,5 @@
-import logging
 from flask import session
+import logging
 
 # Set up logging
 logger = logging.getLogger('flask-ecommerce')
@@ -15,39 +15,27 @@ def clean_cart_session():
     try:
         cart = session.get('cart', {})
         
-        # If cart doesn't exist or is empty, initialize it
-        if not cart:
-            session['cart'] = {}
-            session.modified = True
-            return {}
-        
-        # If not a dict, reset to empty
         if not isinstance(cart, dict):
             session['cart'] = {}
             session.modified = True
             return {}
         
-        # Clean up cart data - keep keys as strings, ensure values are strictly integers
         cleaned_cart = {}
         for k, v in cart.items():
             try:
-                # Skip if key or value is None
                 if k is None or v is None:
                     continue
-
-                # Keep keys as strings, convert values to int
+                
                 key = str(k) if isinstance(k, (int, str)) else None
                 value = int(v) if isinstance(v, (int, str)) else None
-
-                if key is not None and value is not None and value > 0:
+                
+                if key and value and value > 0:
                     cleaned_cart[key] = value
             except (ValueError, TypeError):
-                continue  # Skip invalid entries
+                continue
         
-        # Sort keys to ensure consistent ordering (prevents comparison issues)
-        sorted_cart = {k: cleaned_cart[k] for k in sorted(cleaned_cart.keys())}
+        sorted_cart = dict(sorted(cleaned_cart.items()))
         
-        # Only update session if we made changes
         if sorted_cart != cart:
             session['cart'] = sorted_cart
             session.modified = True
@@ -56,10 +44,10 @@ def clean_cart_session():
         
     except Exception as e:
         logger.error(f"Cart cleaning error: {e}")
-        # Only reset cart if there's a serious error, not just data type issues
         session['cart'] = {}
         session.modified = True
         return {}
+
 
 def clean_buy_now_session():
     """Clean and validate buy-now item in session"""
@@ -74,9 +62,8 @@ def clean_buy_now_session():
             session.modified = True
             return None
         
-        # Only validate keys if they exist
         if 'product' not in buy_now_item or 'quantity' not in buy_now_item:
-            logger.warning("buy_now_item missing required keys (product, quantity), removing")
+            logger.warning("buy_now_item missing required keys, removing")
             session.pop('buy_now_item', None)
             session.modified = True
             return None
@@ -84,14 +71,12 @@ def clean_buy_now_session():
         product = buy_now_item['product']
         quantity = buy_now_item['quantity']
         
-        # Check if product is a valid dict (can be empty dict for valid session structure)
         if not isinstance(product, dict):
             logger.warning("buy_now_item.product is not a dict, removing")
             session.pop('buy_now_item', None)
             session.modified = True
             return None
         
-        # Check quantity
         if not isinstance(quantity, int) or quantity <= 0:
             logger.warning("buy_now_item.quantity is invalid, removing")
             session.pop('buy_now_item', None)
@@ -105,10 +90,12 @@ def clean_buy_now_session():
         session.modified = True
         return None
 
+
 def reset_session():
     """Reset all session data"""
     session.clear()
     session.modified = True
+
 
 def validate_checkout_data(name, address, card_number, expiry_date, cvv):
     """Validate checkout form data"""
@@ -137,6 +124,7 @@ def validate_checkout_data(name, address, card_number, expiry_date, cvv):
         errors.append('Invalid CVV')
     
     return errors
+
 
 def mask_card_number(card_number):
     """Mask card number for security, showing only last 4 digits"""
