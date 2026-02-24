@@ -7,13 +7,13 @@ load_dotenv()
 def seed_database():
     client = MongoClient(os.getenv('mongodb_url'),
                              tlsAllowInvalidCertificates=True)
-    db = client["mydatabase"]
+    db = client["shop_smart"]
     collection = db['products']
     USD_TO_INR_RATE = 96
     data_to_insert = []
     if collection.count_documents({}) == 0:
         try:
-            with open('/Users/abhinav/Documents/rp2/untitled folder/ShopSmart/data/products.csv', mode='r', encoding='utf-8') as file:
+            with open('data/Products.csv', mode='r', encoding='utf-8') as file:
                 reader = csv.DictReader(file)
                 
                 for row in reader:

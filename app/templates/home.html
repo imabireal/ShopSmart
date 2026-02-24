@@ -39,9 +39,9 @@
                 {% for product in products %}
                 <div class="product-card">
                     {% set image_list = product.image_url.replace('[', '').replace(']', '').replace("'", "").split(', ') %}
-                    <img src="{{ image_list[0] }}" alt="{{ product.Description }}" class="product-image">
+                    <img src="{{ image_list[0] }}" alt="{{ product.title }}" class="product-image">
                     <div class="product-info">
-                        <h3 class="product-title">{{ product.Description }}</h3>
+                        <h3 class="product-title">{{ product.title }}</h3>
                         <p class="product-price">₹{{ product.price_inr }}</p>
                         {% if product.seller %}
                         <p class="text-sm text-gray-500">by {{ product.seller }}</p>
@@ -50,17 +50,17 @@
                             {% if current_user.is_authenticated %}
                             <button class="add-to-cart btn-primary"
                                     data-product-id="{{ product.StockCode }}"
-                                    data-product-name="{{ product.Description }}">
+                                    data-product-name="{{ product.title }}">
                                 <span>Add to Cart</span>
                             </button>
                             <button class="buy-now btn-secondary"
                                     data-product-id="{{ product.StockCode }}"
-                                    data-product-name="{{ product.Description }}">
+                                    data-product-name="{{ product.title }}">
                                 <span>Buy Now</span>
                             </button>
                             {% else %}
                             <button class="login-required btn-secondary"
-                                    data-product-name="{{ product.Description }}">
+                                    data-product-name="{{ product.title }}">
                                 <span>Login to Add</span>
                             </button>
                             {% endif %}
