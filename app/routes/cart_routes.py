@@ -27,7 +27,7 @@ def add_to_cart(product_id):
     cart_count = sum(cart.values())
     return jsonify({
         'success': True,
-        'message': f'{product["Description"]} added to cart',
+        'message': f'{product["title"]} added to cart',
         'cart_count': cart_count
     })
 

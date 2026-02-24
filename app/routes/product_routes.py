@@ -32,7 +32,7 @@ def home():
     if search_query:
         all_products = [
             product for product in all_products
-            if search_query in product.get('Description', '').lower() or
+            if search_query in product.get('title', '').lower() or
                search_query in str(product.get('StockCode', '')).lower()
         ]
 

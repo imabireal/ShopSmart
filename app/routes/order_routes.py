@@ -38,14 +38,14 @@ def checkout():
         if product:
             item_total = product['price_inr'] * quantity
             total += item_total
-            cart_items_detail.append(f"{product['Description']} x{quantity}")
+            cart_items_detail.append(f"{product['title']} x{quantity}")
 
     # Add buy-now item to total if present
     buy_now_detail = ""
     if buy_now_item:
         buy_now_total = buy_now_item['product']['price_inr'] * buy_now_item['quantity']
         total += buy_now_total
-        buy_now_detail = f"{buy_now_item['product']['Description']} x{buy_now_item['quantity']}"
+        buy_now_detail = f"{buy_now_item['product']['title']} x{buy_now_item['quantity']}"
 
     # Clear cart and buy-now item after successful checkout
     session.pop('cart', None)
@@ -97,7 +97,7 @@ def buy_now_checkout(product_id):
         
         if checkout_type == 'quick':
             # Process immediate buy-now purchase (no form data required)
-            order_summary = f"Quick purchase completed successfully! {product['Description']} x{quantity} - Total: ${total:.2f}"
+            order_summary = f"Quick purchase completed successfully! {product['title']} x{quantity} - Total: ${total:.2f}"
             
         elif checkout_type == 'normal':
             # Process normal checkout with form data
@@ -116,7 +116,7 @@ def buy_now_checkout(product_id):
             # Mask card number for security (show only last 4 digits)
             masked_card = f"**** **** **** {card_number[-4:]}"
             
-            order_summary = f"Checkout completed successfully! {product['Description']} x{quantity} - Total: ${total:.2f}"
+            order_summary = f"Checkout completed successfully! {product['title']} x{quantity} - Total: ${total:.2f}"
             order_summary += f"<br>Ship to: {name}"
             order_summary += f"<br>Address: {address}"
             order_summary += f"<br>Payment: {masked_card}"
