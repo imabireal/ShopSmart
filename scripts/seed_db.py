@@ -1,4 +1,5 @@
 import csv
+import json
 from pymongo import MongoClient
 from dotenv import load_dotenv
 import os
@@ -23,6 +24,21 @@ def seed_database():
                         price_usd = float(row['Price']) # Convert from string in CSV to float
                         price_inr = int(price_usd * USD_TO_INR_RATE) # Convert to INR integer
                         row['price_inr'] = price_inr # Add the new field
+                        
+                        # Parse JSON fields with proper handling
+                        for field in ['features', 'tags', 'attributes', 'image_url']:
+                            if field in row:
+                                try:
+                                    # Replace single quotes with double quotes to make valid JSON
+                                    field_value = row[field].replace("'", "\"")
+                                    row[field] = json.loads(field_value)
+                                except Exception as e:
+                                    print(f"Error parsing {field} for product {row.get('title', 'Unknown')}: {e}")
+                                    # Set default empty values if parsing fails
+                                    if field in ['features', 'tags', 'image_url']:
+                                        row[field] = []
+                                    elif field == 'attributes':
+                                        row[field] = {}
                         
                         # Optional: Convert other fields to their correct types if needed
                         # row['stock_quantity'] = int(row['stock_quantity']) 

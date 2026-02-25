@@ -38,10 +38,19 @@
             <div class="products-grid">
                 {% for product in products %}
                 <div class="product-card">
-                    {% set image_list = product.image_url.replace('[', '').replace(']', '').replace("'", "").split(', ') %}
-                    <img src="{{ image_list[0] }}" alt="{{ product.title }}" class="product-image">
+                    {% if product.image_url and product.image_url|length > 0 %}
+                        <a href="{{ url_for('product.product_detail', stock_code=product.StockCode) }}">
+                            <img src="{{ product.image_url[0] }}" alt="{{ product.title }}" class="product-image">
+                        </a>
+                    {% else %}
+                        <div class="bg-gray-100 rounded-lg h-48 flex items-center justify-center">
+                            <p class="text-gray-500">No image available</p>
+                        </div>
+                    {% endif %}
                     <div class="product-info">
-                        <h3 class="product-title">{{ product.title }}</h3>
+                        <h3 class="product-title">
+                            <a href="{{ url_for('product.product_detail', stock_code=product.StockCode) }}" class="hover:text-red-600">{{ product.title }}</a>
+                        </h3>
                         <p class="product-price">₹{{ product.price_inr }}</p>
                         {% if product.seller %}
                         <p class="text-sm text-gray-500">by {{ product.seller }}</p>

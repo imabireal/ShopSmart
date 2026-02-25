@@ -143,3 +143,30 @@ def admin_seller_delete_product(product_id):
     return redirect(url_for('product.admin_seller_dashboard'))
 
 
+@product_bp.route('/product/<string:stock_code>')
+def product_detail(stock_code):
+    """Display product information page for a specific product"""
+    # Clean and validate cart from session
+    cart = utils.clean_cart_session()
+    cart_count = sum(cart.values()) if cart else 0
+
+    # Get product details
+    product = db_helper.get_product_by_id(stock_code)
+
+    if not product:
+        flash('Product not found', 'error')
+        return redirect(url_for('product.home'))
+
+    # Ensure fields have default values if missing
+    product['features'] = product.get('features', [])
+    product['tags'] = product.get('tags', [])
+    product['attributes'] = product.get('attributes', {})
+    product['image_url'] = product.get('image_url', [])
+
+    return render_template('product_detail.html',
+                           product=product,
+                           cart=cart,
+                           cart_count=cart_count,
+                           current_user=current_user)
+
+

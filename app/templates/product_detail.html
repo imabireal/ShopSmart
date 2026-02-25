@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ product.title }} - ShopSmart</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <style>
+        .product-gallery {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .gallery-thumbnail {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            cursor: pointer;
+            border: 2px solid transparent;
+            border-radius: 8px;
+        }
+
+        .gallery-thumbnail.active {
+            border-color: #dc2626;
+        }
+
+        .main-image {
+            width: 100%;
+            height: 500px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .product-features {
+            list-style: none;
+            padding: 0;
+        }
+
+        .product-features li {
+            padding: 8px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .product-features li:before {
+            content: "• ";
+            color: #dc2626;
+            font-weight: bold;
+        }
+
+        .product-attributes {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .attribute-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #d1d5db;
+        }
+
+        .attribute-item:last-child {
+            border-bottom: none;
+        }
+
+        .attribute-label {
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .attribute-value {
+            color: #1f2937;
+        }
+    </style>
+</head>
+<body>
+    <header class="walmart-header">
+        <div class="container">
+            <h1>ShopSmart</h1>
+            <nav class="walmart-nav">
+                {% if current_user.is_authenticated %}
+                    {% if current_user.role == 'admin_seller' %}
+                        <a href="{{ url_for('product.admin_seller_dashboard') }}" class="text-red-600 font-bold">Admin Panel</a>
+                    {% endif %}
+                    <a href="{{ url_for('cart.cart') }}" class="cart-badge">
+                        Cart
+                        <span id="cart-count" class="cart-count {% if not cart_count or cart_count == 0 %}hidden{% endif %}">{{ cart_count or 0 }}</span>
+                    </a>
+                    <a href="{{ url_for('auth.logout') }}">Logout</a>
+                {% else %}
+                    <a href="{{ url_for('auth.login') }}">Login</a>
+                    <a href="{{ url_for('auth.register') }}">Register</a>
+                {% endif %}
+            </nav>
+            <form action="{{ url_for('product.home') }}" method="GET" class="search-form">
+                <input type="text" name="q" placeholder="Search products..." value="{{ search_query or '' }}">
+                <button type="submit">Search</button>
+            </form>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="container">
+                    {% for category, message in messages %}
+                        <div class="message {% if category == 'success' %}message-success{% else %}message-error{% endif %}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <!-- Product Image Gallery -->
+            <div class="product-images">
+                {% if product.image_url and product.image_url|length > 0 %}
+                    {% set image_list = product.image_url %}
+                <img src="{{ image_list[0] }}" alt="{{ product.title }}" class="main-image" id="mainImage">
+                
+                <div class="product-gallery">
+                    {% for image in image_list %}
+                    <img src="{{ image }}" alt="{{ product.title }}" class="gallery-thumbnail {% if loop.index0 == 0 %}active{% endif %}" 
+                         onclick="changeImage('{{ image }}', this)">
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="bg-gray-100 rounded-lg h-96 flex items-center justify-center">
+                    <p class="text-gray-500">No images available</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Product Details -->
+            <div class="product-details">
+                <h1 class="text-3xl font-bold mb-4">{{ product.title }}</h1>
+                
+                <div class="text-2xl font-bold text-red-600 mb-6">₹{{ product.price_inr }}</div>
+                
+                {% if product.category %}
+                <div class="mb-6">
+                    <span class="text-sm text-gray-600">Category: </span>
+                    <span class="inline-block bg-gray-100 text-gray-800 px-3 py-1 rounded-full text-sm">{{ product.category }}</span>
+                </div>
+                {% endif %}
+
+                {% if product.description %}
+                <div class="mb-8">
+                    <h2 class="text-xl font-semibold mb-3">Description</h2>
+                    <p class="text-gray-700">{{ product.description }}</p>
+                </div>
+                {% endif %}
+
+                {% if product.features and product.features|length > 0 %}
+                <div class="mb-8">
+                    <h2 class="text-xl font-semibold mb-3">Features</h2>
+                    <ul class="product-features">
+                        {% for feature in product.features %}
+                        <li>{{ feature }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+
+                {% if product.tags and product.tags|length > 0 %}
+                <div class="mb-8">
+                    <h2 class="text-xl font-semibold mb-3">Tags</h2>
+                    <div class="flex flex-wrap gap-2">
+                        {% for tag in product.tags %}
+                        <span class="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">{{ tag }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if product.attributes and product.attributes|length > 0 %}
+                <div class="product-attributes mb-8">
+                    <h2 class="text-xl font-semibold mb-3">Product Attributes</h2>
+                    {% for key, value in product.attributes.items() %}
+                    <div class="attribute-item">
+                        <span class="attribute-label">{{ key }}:</span>
+                        <span class="attribute-value">{{ value }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Add to Cart and Buy Now Buttons -->
+                <div class="product-buttons flex gap-4">
+                    {% if current_user.is_authenticated %}
+                    <button class="add-to-cart btn-primary flex-1"
+                            data-product-id="{{ product.StockCode }}"
+                            data-product-name="{{ product.title }}">
+                        <span>Add to Cart</span>
+                    </button>
+                    <button class="buy-now btn-secondary flex-1"
+                            data-product-id="{{ product.StockCode }}"
+                            data-product-name="{{ product.title }}">
+                        <span>Buy Now</span>
+                    </button>
+                    {% else %}
+                    <button class="login-required btn-secondary flex-1"
+                            data-product-name="{{ product.title }}">
+                        <span>Login to Add</span>
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/home.js') }}"></script>
+    <script>
+        function changeImage(imageUrl, thumbnail) {
+            // Update main image
+            const mainImage = document.getElementById('mainImage');
+            mainImage.src = imageUrl;
+            
+            // Update active thumbnail
+            document.querySelectorAll('.gallery-thumbnail').forEach(img => {
+                img.classList.remove('active');
+            });
+            thumbnail.classList.add('active');
+        }
+    </script>
+</body>
+</html>
