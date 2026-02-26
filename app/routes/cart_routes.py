@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_required, current_user
 from app.utils import db_helper
 from app.utils import utils
+from app.recommender.apriori import recommender
 
 cart_bp = Blueprint('cart', __name__)
 
@@ -50,10 +51,25 @@ def cart():
             })
             cart_total += item_total
 
+    # Get recommendations based on cart items
+    cart_products = [item['product'] for item in cart_items]
+    recommended_product_names = recommender.get_cart_recommendations(cart_products, top_n=5, min_lift=1.2)
+    
+    if recommended_product_names:
+        recommended_products = db_helper.get_products_by_names(recommended_product_names)
+    else:
+        # Use popular products as fallback
+        popular_product_names = recommender.get_popular_products(top_n=5)
+        recommended_products = db_helper.get_products_by_names(popular_product_names)
+    
+    # Remove cart items from recommendations
+    recommended_products = [p for p in recommended_products if p.get('StockCode') not in cart]
+    
     return render_template('cart.html',
                          cart_items=cart_items,
                          total=cart_total,
-                         cart_count=sum(cart.values()))
+                         cart_count=sum(cart.values()),
+                         recommended_products=recommended_products)
 
 
 @cart_bp.route('/update_cart', methods=['POST'])

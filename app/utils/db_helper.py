@@ -265,6 +265,24 @@ def get_product_by_id(product_id):
         logger.error(f"Error finding product: {e}")
         return None
 
+def get_products_by_names(product_names):
+    """Get products by their names (case-insensitive search)."""
+    products_col = db["products"]
+    try:
+        # Create case-insensitive regex patterns for each product name
+        patterns = [{"title": {"$regex": name, "$options": "i"}} for name in product_names]
+        for product in product_names:
+            document = products_col.find_one({"title": product})
+            print(product)
+        if not patterns:
+            return []
+        
+        products = list(products_col.find({"$or": patterns}, {"_id": 0}))
+        return products
+    except Exception as e:
+        logger.error(f"Error finding products by names: {e}")
+        return []
+
 def get_seller_product_by_id(seller_username, product_id):
     """Get a seller product by ID."""
     seller_products_col = db["seller_products"]

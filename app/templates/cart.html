@@ -177,6 +177,58 @@
                 </a>
             </div>
         {% endif %}
+        
+        <!-- Recommended Products Section -->
+        {% if recommended_products %}
+        <section class="py-16 bg-gray-50">
+            <div class="container mx-auto px-4">
+                <h2 class="text-2xl font-bold text-gray-800 mb-8 text-center">Recommended for You</h2>
+                <div class="products-grid">
+                    {% for related_product in recommended_products %}
+                    <div class="product-card">
+                        {% if related_product.image_url and related_product.image_url|length > 0 %}
+                            <a href="{{ url_for('product.product_detail', stock_code=related_product.StockCode) }}">
+                                <img src="{{ related_product.image_url[0] }}" alt="{{ related_product.title }}" class="product-image">
+                            </a>
+                        {% else %}
+                            <div class="bg-gray-100 rounded-lg h-48 flex items-center justify-center">
+                                <p class="text-gray-500">No image available</p>
+                            </div>
+                        {% endif %}
+                        <div class="product-info">
+                            <h3 class="product-title">
+                                <a href="{{ url_for('product.product_detail', stock_code=related_product.StockCode) }}" class="hover:text-red-600">{{ related_product.title }}</a>
+                            </h3>
+                            <p class="product-price">₹{{ related_product.price_inr }}</p>
+                            {% if related_product.seller %}
+                            <p class="text-sm text-gray-500">by {{ related_product.seller }}</p>
+                            {% endif %}
+                            <div class="product-buttons">
+                                {% if current_user.is_authenticated %}
+                                <button class="add-to-cart btn-primary"
+                                        data-product-id="{{ related_product.StockCode }}"
+                                        data-product-name="{{ related_product.title }}">
+                                    <span>Add to Cart</span>
+                                </button>
+                                <button class="buy-now btn-secondary"
+                                        data-product-id="{{ related_product.StockCode }}"
+                                        data-product-name="{{ related_product.title }}">
+                                    <span>Buy Now</span>
+                                </button>
+                                {% else %}
+                                <button class="login-required btn-secondary"
+                                        data-product-name="{{ related_product.title }}">
+                                    <span>Login to Add</span>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+        {% endif %}
     </main>
 
     <script>

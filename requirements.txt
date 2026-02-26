@@ -3,3 +3,6 @@ Flask-Login==0.6.3
 pymongo
 bcrypt
 python-dotenv
+joblib
+pandas
+numpy

@@ -2,6 +2,11 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from flask_login import login_required, current_user
 from app.utils import db_helper
 from app.utils import utils
+from app.recommender.apriori import recommender
+import logging
+
+# Set up logging
+logger = logging.getLogger('flask-ecommerce')
 
 product_bp = Blueprint('product', __name__)
 
@@ -163,10 +168,25 @@ def product_detail(stock_code):
     product['attributes'] = product.get('attributes', {})
     product['image_url'] = product.get('image_url', [])
 
+    # Get frequently bought together products using Apriori recommender
+    product_name = product.get('title', '')
+    recommended_product_names = recommender.get_related_products(product_name, top_n=5, min_lift=1.2)
+    
+    if recommended_product_names:
+        frequently_bought_products = db_helper.get_products_by_names(recommended_product_names)
+    else:
+        # Use popular products as fallback
+        popular_product_names = recommender.get_popular_products(top_n=5)
+        frequently_bought_products = db_helper.get_products_by_names(popular_product_names)
+
+    # Remove current product from recommendations if it appears
+    frequently_bought_products = [p for p in frequently_bought_products if p.get('StockCode') != stock_code]
+
     return render_template('product_detail.html',
                            product=product,
                            cart=cart,
                            cart_count=cart_count,
-                           current_user=current_user)
+                           current_user=current_user,
+                           frequently_bought_products=frequently_bought_products)
 
 
