@@ -173,7 +173,10 @@ ShopSmart/
 ├── artifacts/
 │   └── apriori_rules-3.pkl  # Precomputed recommendation rules
 ├── docs/                    # Documentation
-│   └── chatbot.md           # Chatbot implementation details
+│   ├── chatbot.md           # Chatbot implementation details
+│   ├── recommendation_system.md  # Product recommendation system details
+│   ├── database_helper.md   # Database helper and operations
+│   └── api_routes.md        # API routes documentation
 └── tests/                   # Test files
 ```
 
