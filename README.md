@@ -1,6 +1,6 @@
 # 🛒 ShopSmart – E-commerce Web Application
 
-ShopSmart is a Flask-based e-commerce web application designed to provide a simple and intuitive online shopping experience. It includes essential e-commerce features such as user authentication with secure password hashing, product browsing, shopping cart management, checkout, and an admin/seller dashboard for product management.
+ShopSmart is a Flask-based e-commerce web application designed to provide a simple and intuitive online shopping experience. It includes essential e-commerce features such as user authentication with secure password hashing, product browsing, shopping cart management, checkout, and an admin/seller dashboard for product management. Additionally, it features a chatbot for customer assistance and a product recommendation system.
 
 ---
 
@@ -51,6 +51,18 @@ ShopSmart is a Flask-based e-commerce web application designed to provide a simp
 - Products stored in MongoDB with CSV seeding support
 - Separate collections for main products and seller products
 
+### Chatbot Integration
+- AI-powered chatbot for customer assistance
+- Real-time chat interface with message history
+- Support for product inquiries, order status, and general questions
+- Grok API integration for natural language processing
+
+### Product Recommendation System
+- Apriori algorithm for association rule mining
+- Generates product recommendations based on customer behavior
+- Support for collaborative filtering and association analysis
+- Precomputed recommendation rules stored in artifacts
+
 ---
 
 ## Tech Stack
@@ -62,6 +74,9 @@ ShopSmart is a Flask-based e-commerce web application designed to provide a simp
 - **Security:** bcrypt for password hashing
 - **Session Management:** Flask sessions with data validation
 - **Environment Configuration:** python-dotenv
+- **Chatbot:** Grok API for natural language processing
+- **Recommendation System:** Apriori algorithm for association rule mining
+- **Data Analysis:** Pandas for data processing
 
 ---
 
@@ -78,6 +93,7 @@ Create a `.env` file in the project root with the following:
 ```
 mongodb_url=your_mongodb_connection_string
 SECRET_KEY=your_secret_key
+GROK_API_KEY=your_grok_api_key  # Required for chatbot functionality
 ```
 
 ### 3️⃣ Install Dependencies
@@ -86,9 +102,10 @@ pip install -r requirements.txt
 ```
 
 ### 4️⃣ Seed the Database
-Run the seed script to populate the database with sample products:
+Run the seed script to populate the database with sample products and admin/seller accounts:
 ```bash
 python scripts/seed_db.py
+python scripts/seed_admin_sellers.py
 ```
 
 ### 5️⃣ Run the Application
@@ -125,24 +142,38 @@ ShopSmart/
 │   │   ├── auth_routes.py    # Authentication routes
 │   │   ├── product_routes.py # Product catalog and admin routes
 │   │   ├── cart_routes.py    # Cart management routes
-│   │   └── order_routes.py   # Checkout and order routes
+│   │   ├── order_routes.py   # Checkout and order routes
+│   │   └── chatbot_routes.py # Chatbot endpoints
 │   ├── utils/               # Utility functions
 │   │   ├── db_helper.py      # Database helper functions
 │   │   └── utils.py          # Session and validation utilities
 │   ├── static/              # Static files (CSS, JS, images)
+│   │   ├── css/
+│   │   │   ├── styles.css    # Main styles
+│   │   │   └── chatbot.css   # Chatbot styles
+│   │   └── js/
+│   │       ├── home.js       # Home page functionality
+│   │       ├── buy_now_checkout.js # Buy now checkout
+│   │       └── chatbot.js    # Chatbot frontend logic
 │   ├── templates/           # HTML templates
 │   ├── api/                 # API versioning (v1)
 │   ├── chatbot/             # Chatbot functionality
-│   ├── recommender/         # Recommendation system (planned)
+│   │   ├── chatbot_service.py # Chatbot core logic
+│   │   └── grok_api.py      # Grok API integration
+│   ├── recommender/         # Recommendation system
+│   │   └── apriori.py       # Apriori algorithm implementation
 │   └── services/            # Business logic services
-├── config.py                # Configuration settings
 ├── run.py                   # Application entry point
 ├── requirements.txt         # Python dependencies
 ├── scripts/
-│   └── seed_db.py           # Database seeding script
+│   ├── seed_db.py           # Database seeding script
+│   └── seed_admin_sellers.py # Admin/seller account seeding
 ├── data/
-│   └── products.csv         # Sample product data
+│   └── Products.csv         # Sample product data
+├── artifacts/
+│   └── apriori_rules-3.pkl  # Precomputed recommendation rules
 ├── docs/                    # Documentation
+│   └── chatbot.md           # Chatbot implementation details
 └── tests/                   # Test files
 ```
 
@@ -170,6 +201,28 @@ ShopSmart/
 - Buy-now functionality
 - Payment processing and validation
 
+### Chatbot Routes ([chatbot_routes.py](app/routes/chatbot_routes.py))
+- Chatbot conversation endpoints
+- Message history management
+- Real-time chat functionality
+
+### Chatbot Service ([chatbot_service.py](app/chatbot/chatbot_service.py))
+- Core chatbot logic
+- Natural language processing with Grok API
+- Product recommendation integration
+- Order tracking and customer support
+
+### Grok API Integration ([grok_api.py](app/chatbot/grok_api.py))
+- Grok API communication
+- Request/response handling
+- Error management and retries
+
+### Recommendation System ([apriori.py](app/recommender/apriori.py))
+- Apriori algorithm implementation
+- Association rule mining
+- Product recommendation generation
+- Precomputed rules loading and saving
+
 ### Database Helper ([db_helper.py](app/utils/db_helper.py))
 - User and product CRUD operations
 - MongoDB connection and queries
@@ -187,13 +240,15 @@ ShopSmart/
 - [ ] Add CSRF protection for forms
 - [ ] Implement order history
 - [ ] Create user profiles
-- [ ] Implement product recommendation system (Apriori algorithm)
 - [ ] Improve responsive UI design
 - [ ] Add email notifications
 - [ ] Implement order tracking
 - [ ] Enhance product search functionality
 - [ ] Implement promotional coupons/discounts
 - [ ] Add product reviews and ratings
+- [ ] Improve chatbot response accuracy
+- [ ] Add more recommendation algorithms
+- [ ] Implement real-time order updates
 
 ---
 

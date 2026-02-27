@@ -1,10 +1,14 @@
 from flask import Flask, request
-from config import Config
 from app.extensions import init_extensions
+from dotenv import load_dotenv
+import os
+
+# Load environment variables from .env file
+load_dotenv()
 
 def create_app():
     app = Flask(__name__)
-    app.config.from_object(Config)
+    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'your-secret-key-here')
 
     init_extensions(app)
 
@@ -51,10 +55,12 @@ def create_app():
     from app.routes.product_routes import product_bp
     from app.routes.cart_routes import cart_bp
     from app.routes.order_routes import order_bp
+    from app.routes.chatbot_routes import chatbot_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(product_bp)
     app.register_blueprint(cart_bp)
     app.register_blueprint(order_bp)
+    app.register_blueprint(chatbot_bp)
 
     return app

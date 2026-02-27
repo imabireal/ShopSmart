@@ -1,7 +1,6 @@
 import pymongo
 import bcrypt
 import logging
-from config import Config
 import os
 from dotenv import load_dotenv
 # Load variables from .env into the environment
